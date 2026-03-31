@@ -42,8 +42,9 @@ export function AssignmentListPanel({
     <PanelShell
       title="Assignments"
       subtitle={`${assignments.length} queue${assignments.length === 1 ? "" : "s"}`}
+      className="h-full min-h-0"
     >
-      <div className="space-y-2 bg-[#fbfbfa] p-3">
+      <div className="min-h-0 space-y-2 overflow-y-auto bg-[#fbfbfa] p-3">
         {assignments.length === 0 ? (
           <div className="rounded-none border border-dashed border-zinc-300 bg-white px-4 py-8 text-sm text-zinc-500">
             Create an assignment to start using the dashboard flow.

@@ -28,9 +28,9 @@ export function AssignmentsPage({
   const [tab, setTab] = useState<"discover" | "create">("discover");
 
   return (
-    <div className="space-y-4">
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
       <Breadcrumbs items={[{ label: "Assignments" }]} />
-      <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 gap-4 overflow-hidden xl:grid-cols-[320px_minmax(0,1fr)]">
         <AssignmentListPanel
           assignments={assignments}
           selectedAssignmentId={selectedAssignmentId}
@@ -40,7 +40,7 @@ export function AssignmentsPage({
           busy={busy}
         />
 
-        <div className="min-w-0 space-y-4">
+        <div className="flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden">
           <FileTabs
             tabs={["discover", "create"] as const}
             activeTab={tab}
@@ -51,7 +51,7 @@ export function AssignmentsPage({
             <AssignmentDiscoveryPanel
               onCreateAssignment={onCreateAssignment}
               busy={busy}
-              className="rounded-t-none border-t-0"
+              className="min-h-0 flex-1 rounded-t-none border-t-0"
             />
           ) : null}
 
@@ -59,7 +59,7 @@ export function AssignmentsPage({
             <AssignmentCreateForm
               onCreateAssignment={onCreateAssignment}
               busy={busy}
-              className="rounded-t-none border-t-0"
+              className="min-h-0 flex-1 rounded-t-none border-t-0"
             />
           ) : null}
         </div>

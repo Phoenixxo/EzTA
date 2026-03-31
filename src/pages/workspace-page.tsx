@@ -362,7 +362,8 @@ export function WorkspacePage() {
   }, [route, workspace, selectedPosition, hasPrevious, hasNext]);
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#d7d6d1] p-4 text-zinc-950">
+    <div className="flex h-screen overflow-hidden bg-[#d7d6d1] p-4 text-zinc-950">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="mb-3 flex items-center rounded-none border border-zinc-400 bg-linear-to-b from-zinc-100 to-zinc-200 px-4 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
         <div className="flex items-center gap-3">
           <div className="rounded-none border border-zinc-400 bg-white p-1.5">
@@ -385,7 +386,8 @@ export function WorkspacePage() {
         </div>
       ) : null}
 
-      {pageContent}
+      <div className="min-h-0 flex-1 overflow-hidden">{pageContent}</div>
+      </div>
 
       <button
         type="button"

@@ -1,5 +1,5 @@
 import { ChangeEvent, useRef, useState } from "react";
-import { FileUp, FolderSync } from "lucide-react";
+import { Bold, FileUp, FolderSync } from "lucide-react";
 import type { Assignment } from "../../types/ezta";
 import { previewRepoTemplate } from "../../lib/assignment-template";
 import { Button } from "../ui/button";
@@ -74,14 +74,11 @@ export function RosterImportPanel({
       <div className="space-y-3 bg-white p-4">
         <div className="border border-zinc-300 bg-zinc-50 px-3 py-3 text-xs text-zinc-700">
           <div className="font-semibold uppercase tracking-[0.12em] text-zinc-900">
-            Required flow
+            UPLOAD ROSTER FILE HERE
           </div>
-          <div className="mt-1 leading-5">
-            1. Set the repo template in assignment settings.
+          <div className="font-bold mt-1 leading-5">
+            Supported File Types: CSV
             <br />
-            2. Import the classroom roster CSV.
-            <br />
-            3. Run sync to resolve matching repositories from the imported roster.
           </div>
         </div>
         <input
@@ -108,7 +105,9 @@ export function RosterImportPanel({
         ) : null}
         <div className="border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-700">
           Repo preview from current template:
-          <span className="ml-2 font-mono text-zinc-900">{previewRepoName}</span>
+          <span className="ml-2 font-mono text-zinc-900">
+            {previewRepoName}
+          </span>
         </div>
         <Textarea
           value={rosterInput}
