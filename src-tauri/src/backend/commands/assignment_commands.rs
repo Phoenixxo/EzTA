@@ -9,7 +9,7 @@ use super::super::db::{
 };
 use super::super::external::{
     apply_repo_template, commit_exists, ensure_local_repo, fetch_existing_pr,
-    find_deadline_submission_from_push_events, run_command, run_json_command,
+    fetch_all_remote_heads, find_deadline_submission_from_push_events, run_command, run_json_command,
     should_include_roster_row,
 };
 use super::super::models::{
@@ -52,10 +52,10 @@ pub(crate) fn sync_assignment_repos_inner(ctx: &AppContext, assignment_id: i64) 
                      SET repo_url = ?1, default_branch = ?2, local_path = ?3, last_error = NULL, updated_at = ?4
                      WHERE id = ?5",
                     params![
-                        details.url,
+                        details.html_url,
                         details
-                            .default_branch_ref
-                            .map(|branch| branch.name)
+                            .default_branch
+                            .clone()
                             .unwrap_or_else(|| "main".to_string()),
                         local_path.to_string_lossy().to_string(),
                         now,
@@ -526,8 +526,7 @@ pub fn list_commit_options(
         let assignment = fetch_assignment(conn, repo.assignment_id)?;
         Ok((repo, assignment))
     })?;
-    ensure_local_repo(&repo)?;
-    let repo_path = PathBuf::from(&repo.local_path);
+    let repo_path = fetch_all_remote_heads(&repo)?;
 
     let refs_output = run_command(
         "git",
@@ -573,7 +572,6 @@ pub fn list_commit_options(
             "git",
             &[
                 "rev-list",
-                "--max-count=25",
                 "--pretty=format:%H\t%cI\t%s",
                 deadline_sha,
             ],
@@ -587,8 +585,6 @@ pub fn list_commit_options(
                 "--all",
                 "--date-order",
                 "--pretty=format:%H\t%cI\t%s",
-                "-n",
-                "25",
             ],
             Some(&repo_path),
         )?

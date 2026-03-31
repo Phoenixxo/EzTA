@@ -1,5 +1,5 @@
 import { ChangeEvent, useRef, useState } from "react";
-import { Bold, FileUp, FolderSync } from "lucide-react";
+import { FileUp, FolderSync } from "lucide-react";
 import type { Assignment } from "../../types/ezta";
 import { previewRepoTemplate } from "../../lib/assignment-template";
 import { Button } from "../ui/button";

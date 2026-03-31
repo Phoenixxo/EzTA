@@ -40,7 +40,7 @@ export function AssignmentsPage({
           busy={busy}
         />
 
-        <div className="flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden">
+        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
           <FileTabs
             tabs={["discover", "create"] as const}
             activeTab={tab}

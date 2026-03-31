@@ -72,7 +72,7 @@ export function StudentReviewPage({
   busy,
 }: StudentReviewPageProps) {
   return (
-    <div className="space-y-4">
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
       <Breadcrumbs
         items={[
           { label: "Assignments", onClick: onOpenAssignments },
@@ -99,32 +99,34 @@ export function StudentReviewPage({
         </div>
       </div>
 
-      <InspectorPane
-        selectedRepo={selectedRepo}
-        selectedAssignmentDeadline={selectedAssignmentDeadline}
-        filteredRepoCount={filteredRepoCount}
-        selectedPosition={selectedPosition}
-        commitOptions={commitOptions}
-        pickerTarget={pickerTarget}
-        onPickerTargetChange={onPickerTargetChange}
-        baseInput={baseInput}
-        onBaseInputChange={onBaseInputChange}
-        submissionInput={submissionInput}
-        onSubmissionInputChange={onSubmissionInputChange}
-        notesInput={notesInput}
-        onNotesInputChange={onNotesInputChange}
-        statusInput={statusInput}
-        onStatusInputChange={onStatusInputChange}
-        onLoadCommitOptions={onLoadCommitOptions}
-        onValidateTarget={onValidateTarget}
-        onSaveTarget={onSaveTarget}
-        onSaveRepoMeta={onSaveRepoMeta}
-        onPrepareReview={onPrepareReview}
-        onOpenRepoInEditor={onOpenRepoInEditor}
-        onOpenReviewWorkspace={onOpenReviewWorkspace}
-        onApplyPickedRevision={onApplyPickedRevision}
-        busy={busy}
-      />
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <InspectorPane
+          selectedRepo={selectedRepo}
+          selectedAssignmentDeadline={selectedAssignmentDeadline}
+          filteredRepoCount={filteredRepoCount}
+          selectedPosition={selectedPosition}
+          commitOptions={commitOptions}
+          pickerTarget={pickerTarget}
+          onPickerTargetChange={onPickerTargetChange}
+          baseInput={baseInput}
+          onBaseInputChange={onBaseInputChange}
+          submissionInput={submissionInput}
+          onSubmissionInputChange={onSubmissionInputChange}
+          notesInput={notesInput}
+          onNotesInputChange={onNotesInputChange}
+          statusInput={statusInput}
+          onStatusInputChange={onStatusInputChange}
+          onLoadCommitOptions={onLoadCommitOptions}
+          onValidateTarget={onValidateTarget}
+          onSaveTarget={onSaveTarget}
+          onSaveRepoMeta={onSaveRepoMeta}
+          onPrepareReview={onPrepareReview}
+          onOpenRepoInEditor={onOpenRepoInEditor}
+          onOpenReviewWorkspace={onOpenReviewWorkspace}
+          onApplyPickedRevision={onApplyPickedRevision}
+          busy={busy}
+        />
+      </div>
     </div>
   );
 }

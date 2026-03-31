@@ -138,6 +138,22 @@ pub fn ensure_local_repo(repo: &StudentRepo) -> AppResult<()> {
     Ok(())
 }
 
+pub fn fetch_all_remote_heads(repo: &StudentRepo) -> AppResult<PathBuf> {
+    ensure_local_repo(repo)?;
+    let local_path = PathBuf::from(&repo.local_path);
+    run_command(
+        "git",
+        &[
+            "fetch",
+            "origin",
+            "--prune",
+            "+refs/heads/*:refs/remotes/origin/*",
+        ],
+        Some(&local_path),
+    )?;
+    Ok(local_path)
+}
+
 pub fn require_local_repo(repo: &StudentRepo) -> AppResult<PathBuf> {
     let local_path = PathBuf::from(&repo.local_path);
     if local_path.join(".git").exists() {

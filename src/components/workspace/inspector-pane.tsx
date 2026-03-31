@@ -77,7 +77,8 @@ export function InspectorPane({
 
   function getRevisionSelectionState(sha: string) {
     const matchesBase = Boolean(baseInput) && baseInput === sha;
-    const matchesSubmission = Boolean(submissionInput) && submissionInput === sha;
+    const matchesSubmission =
+      Boolean(submissionInput) && submissionInput === sha;
     return {
       matchesBase,
       matchesSubmission,
@@ -103,7 +104,7 @@ export function InspectorPane({
       actions={
         selectedRepo ? <StatusBadge status={selectedRepo.reviewStatus} /> : null
       }
-      className="min-h-[calc(100vh-10rem)] min-w-0"
+      className="h-full min-h-0 min-w-0"
       bodyClassName="grid min-h-0 grid-rows-[auto_auto_1fr]"
     >
       <div className="border-b border-zinc-300 bg-[#f0f0ed] px-3 py-2">
@@ -351,12 +352,12 @@ export function InspectorPane({
             ) : null}
 
             {activeTab === "revisions" ? (
-              <div className="grid min-h-0 gap-4 p-4 xl:grid-cols-2">
-                <div className="min-h-0 overflow-hidden rounded-none border border-zinc-300 bg-white">
+              <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-4 p-4 xl:grid-cols-2 xl:grid-rows-[minmax(0,1fr)_auto]">
+                <div className="flex min-h-0 flex-col overflow-hidden rounded-none border border-zinc-300 bg-white">
                   <div className="border-b border-zinc-300 bg-zinc-100 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
                     Refs
                   </div>
-                  <div className="max-h-[calc(100vh-17rem)] overflow-y-auto p-1">
+                  <div className="min-h-0 flex-1 overflow-y-auto p-1 pb-3">
                     {commitOptions?.refs.length ? (
                       commitOptions.refs.map((ref) => {
                         const selection = getRevisionSelectionState(ref.target);
@@ -406,11 +407,11 @@ export function InspectorPane({
                   </div>
                 </div>
 
-                <div className="min-h-0 overflow-hidden rounded-none border border-zinc-300 bg-white">
+                <div className="flex min-h-0 flex-col overflow-hidden rounded-none border border-zinc-300 bg-white">
                   <div className="border-b border-zinc-300 bg-zinc-100 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
                     Recent commits
                   </div>
-                  <div className="max-h-[calc(100vh-17rem)] overflow-y-auto p-1">
+                  <div className="min-h-0 flex-1 overflow-y-auto p-1 pb-3">
                     {commitOptions?.recentCommits.length ? (
                       commitOptions.recentCommits.map((commit) => {
                         const selection = getRevisionSelectionState(commit.sha);
@@ -431,9 +432,13 @@ export function InspectorPane({
                                 {commit.summary || "(no summary)"}
                               </div>
                               <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
-                                <span className="font-mono">{shortSha(commit.sha)}</span>
+                                <span className="font-mono">
+                                  {shortSha(commit.sha)}
+                                </span>
                                 {commit.committedAt ? (
-                                  <span>{formatCommitTimestamp(commit.committedAt)}</span>
+                                  <span>
+                                    {formatCommitTimestamp(commit.committedAt)}
+                                  </span>
                                 ) : null}
                               </div>
                             </div>

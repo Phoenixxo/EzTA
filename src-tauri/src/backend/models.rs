@@ -384,11 +384,6 @@ pub struct SubmitPendingReviewResult {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct GhRepoOwner {
-    pub login: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GhDefaultBranchRef {
     pub name: String,
@@ -398,10 +393,10 @@ pub struct GhDefaultBranchRef {
 #[serde(rename_all = "camelCase")]
 pub struct GhRepo {
     pub name: String,
-    pub name_with_owner: String,
-    pub url: String,
-    pub owner: GhRepoOwner,
-    pub default_branch_ref: Option<GhDefaultBranchRef>,
+    #[serde(rename = "html_url")]
+    pub html_url: String,
+    #[serde(rename = "default_branch")]
+    pub default_branch: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
