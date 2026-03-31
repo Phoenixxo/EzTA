@@ -1,29 +1,11 @@
 use std::sync::atomic::Ordering;
 
-use tauri::{AppHandle, Url};
+use tauri::AppHandle;
 use tauri_plugin_updater::UpdaterExt;
 
-use super::super::models::{
-    AppUpdateCheckResult, AppUpdateInstallResult, AppUpdaterConfigInput, AppUpdaterOverview,
-};
+use super::super::models::{AppUpdateCheckResult, AppUpdateInstallResult, AppUpdaterOverview};
 use super::super::state::AppState;
 use super::super::AppResult;
-
-fn validate_updater_config(input: &AppUpdaterConfigInput) -> AppResult<(Url, String)> {
-    let endpoint = input.endpoint.trim().to_string();
-    let pubkey = input.pubkey.trim().to_string();
-
-    if endpoint.is_empty() {
-        return Err("updater endpoint is required".to_string());
-    }
-    if pubkey.is_empty() {
-        return Err("updater public key is required".to_string());
-    }
-
-    let endpoint = Url::parse(&endpoint).map_err(|err| format!("invalid updater endpoint: {}", err))?;
-
-    Ok((endpoint, pubkey))
-}
 
 #[tauri::command]
 pub fn get_app_updater_overview(app: AppHandle) -> AppUpdaterOverview {
@@ -33,18 +15,11 @@ pub fn get_app_updater_overview(app: AppHandle) -> AppUpdaterOverview {
 }
 
 #[tauri::command]
-pub async fn check_for_app_update(
-    app: AppHandle,
-    input: AppUpdaterConfigInput,
-) -> AppResult<AppUpdateCheckResult> {
-    let (endpoint, pubkey) = validate_updater_config(&input)?;
+pub async fn check_for_app_update(app: AppHandle) -> AppResult<AppUpdateCheckResult> {
     let current_version = app.package_info().version.to_string();
 
     let updater = app
         .updater_builder()
-        .endpoints(vec![endpoint])
-        .map_err(|err| err.to_string())?
-        .pubkey(pubkey)
         .build()
         .map_err(|err| err.to_string())?;
 
@@ -70,11 +45,8 @@ pub async fn check_for_app_update(
 #[tauri::command]
 pub async fn install_app_update(
     app: AppHandle,
-    input: AppUpdaterConfigInput,
     state: tauri::State<'_, AppState>,
 ) -> AppResult<AppUpdateInstallResult> {
-    let (endpoint, pubkey) = validate_updater_config(&input)?;
-
     if state
         .update_in_progress
         .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
@@ -85,9 +57,6 @@ pub async fn install_app_update(
 
     let updater = match app
         .updater_builder()
-        .endpoints(vec![endpoint])
-        .map_err(|err| err.to_string())?
-        .pubkey(pubkey)
         .build()
         .map_err(|err| err.to_string())
     {

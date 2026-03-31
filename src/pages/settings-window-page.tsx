@@ -13,10 +13,6 @@ export function SettingsWindowPage() {
         editorCommandInput={settings.editorCommandInput}
         onEditorCommandInputChange={settings.setEditorCommandInput}
         updaterOverview={settings.appUpdaterOverview}
-        updaterEndpointInput={settings.updaterEndpointInput}
-        onUpdaterEndpointInputChange={settings.setUpdaterEndpointInput}
-        updaterPublicKeyInput={settings.updaterPublicKeyInput}
-        onUpdaterPublicKeyInputChange={settings.setUpdaterPublicKeyInput}
         appUpdateResult={settings.appUpdateResult}
         appUpdateMessage={settings.appUpdateMessage}
         githubConnectionStatus={settings.githubConnectionStatus}

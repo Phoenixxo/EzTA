@@ -37,12 +37,12 @@ export async function getAppUpdaterOverview() {
   return invoke<AppUpdaterOverview>("get_app_updater_overview");
 }
 
-export async function checkForAppUpdate(input: { endpoint: string; pubkey: string }) {
-  return invoke<AppUpdateCheckResult>("check_for_app_update", { input });
+export async function checkForAppUpdate() {
+  return invoke<AppUpdateCheckResult>("check_for_app_update");
 }
 
-export async function installAppUpdate(input: { endpoint: string; pubkey: string }) {
-  return invoke<AppUpdateInstallResult>("install_app_update", { input });
+export async function installAppUpdate() {
+  return invoke<AppUpdateInstallResult>("install_app_update");
 }
 
 export async function launchGithubAuth() {

@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::de::DeserializeOwned;
 use serde_json::json;
+use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -9,9 +10,37 @@ use super::db::parse_rfc3339_utc;
 use super::models::{Assignment, ClassroomRosterRow, DraftComment, GhPendingReview, GhPr, GhPushEvent, StudentRepo};
 use super::AppResult;
 
+fn configured_path() -> String {
+    let path = env::var_os("PATH")
+        .map(|value| value.to_string_lossy().to_string())
+        .unwrap_or_default();
+
+    let mut segments = vec![
+        "/opt/homebrew/bin".to_string(),
+        "/usr/local/bin".to_string(),
+        "/usr/bin".to_string(),
+        "/bin".to_string(),
+        "/usr/sbin".to_string(),
+        "/sbin".to_string(),
+    ];
+
+    for segment in path.split(':').filter(|segment| !segment.is_empty()) {
+        if !segments.iter().any(|existing| existing == segment) {
+            segments.push(segment.to_string());
+        }
+    }
+
+    segments.join(":")
+}
+
+fn apply_command_environment(command: &mut Command) {
+    command.env("PATH", configured_path());
+}
+
 pub fn run_command(program: &str, args: &[&str], cwd: Option<&Path>) -> AppResult<String> {
     let mut command = Command::new(program);
     command.args(args);
+    apply_command_environment(&mut command);
     if let Some(dir) = cwd {
         command.current_dir(dir);
     }
@@ -40,6 +69,7 @@ pub fn run_json_command<T: DeserializeOwned>(
 pub fn try_command(program: &str, args: &[&str], cwd: Option<&Path>) -> (bool, String) {
     let mut command = Command::new(program);
     command.args(args);
+    apply_command_environment(&mut command);
     if let Some(dir) = cwd {
         command.current_dir(dir);
     }
@@ -62,6 +92,7 @@ pub fn run_json_command_with_json_input<T: DeserializeOwned>(
 ) -> AppResult<T> {
     let mut command = Command::new(program);
     command.args(args).stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
+    apply_command_environment(&mut command);
     if let Some(dir) = cwd {
         command.current_dir(dir);
     }

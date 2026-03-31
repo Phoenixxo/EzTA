@@ -17,10 +17,6 @@ type SettingsPageProps = {
   editorCommandInput: string;
   onEditorCommandInputChange: (value: string) => void;
   updaterOverview: AppUpdaterOverview | null;
-  updaterEndpointInput: string;
-  onUpdaterEndpointInputChange: (value: string) => void;
-  updaterPublicKeyInput: string;
-  onUpdaterPublicKeyInputChange: (value: string) => void;
   appUpdateResult: AppUpdateCheckResult | null;
   appUpdateMessage: string;
   githubConnectionStatus: GithubConnectionStatus | null;
@@ -42,10 +38,6 @@ export function SettingsPage({
   editorCommandInput,
   onEditorCommandInputChange,
   updaterOverview,
-  updaterEndpointInput,
-  onUpdaterEndpointInputChange,
-  updaterPublicKeyInput,
-  onUpdaterPublicKeyInputChange,
   appUpdateResult,
   appUpdateMessage,
   githubConnectionStatus,
@@ -125,7 +117,7 @@ export function SettingsPage({
 
         <PanelShell
           title="Updates"
-          subtitle="Runtime updater configuration for signed GitHub releases"
+          subtitle="Built-in app updates from your signed EzTA release feed"
         >
           <div className="bg-white">
             <SettingRow
@@ -134,35 +126,11 @@ export function SettingsPage({
               value={updaterOverview?.currentVersion ?? "Loading app version..."}
             />
             <SettingRow
-              label="Update feed endpoint"
-              description="Point this at the signed `latest.json` artifact published with your GitHub release."
-              control={
-                <Input
-                  value={updaterEndpointInput}
-                  onChange={(event) => onUpdaterEndpointInputChange(event.currentTarget.value)}
-                  className="h-10 rounded-none"
-                  placeholder="https://github.com/owner/repo/releases/latest/download/latest.json"
-                />
-              }
-            />
-            <SettingRow
-              label="Updater public key"
-              description="Paste the Tauri updater public key. EzTA uses it to verify downloaded updates before install."
-              control={
-                <textarea
-                  value={updaterPublicKeyInput}
-                  onChange={(event) => onUpdaterPublicKeyInputChange(event.currentTarget.value)}
-                  className="min-h-28 w-full rounded-none border border-zinc-300 bg-white px-3 py-3 text-sm text-zinc-900 outline-none focus:border-zinc-500"
-                  placeholder="Paste updater public key"
-                />
-              }
-            />
-            <SettingRow
               label="Update status"
-              description="Check for a newer signed release, then install it from here."
+              description="Check the signed release feed configured in EzTA, then install an update from here."
               value={
                 appUpdateMessage ||
-                "Check for updates after you configure the endpoint and public key."
+                "Check for updates when you want EzTA to look for a newer signed release."
               }
               control={
                 <UpdateActions
