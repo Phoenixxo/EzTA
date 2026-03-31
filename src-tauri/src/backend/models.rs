@@ -337,6 +337,36 @@ pub struct GithubConnectionStatus {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct AppUpdaterOverview {
+    pub current_version: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppUpdaterConfigInput {
+    pub endpoint: String,
+    pub pubkey: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppUpdateCheckResult {
+    pub current_version: String,
+    pub available: bool,
+    pub version: Option<String>,
+    pub date: Option<String>,
+    pub body: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppUpdateInstallResult {
+    pub installed_version: String,
+    pub restarted: bool,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PublishDraftCommentsResult {
     pub queued_count: usize,
     pub failed_count: usize,

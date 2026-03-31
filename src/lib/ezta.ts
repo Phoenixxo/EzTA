@@ -3,6 +3,9 @@ import { localDateTimeInputToUtcIso } from "./format";
 import type {
   Assignment,
   BackgroundJob,
+  AppUpdateCheckResult,
+  AppUpdateInstallResult,
+  AppUpdaterOverview,
   AssignmentDiscoveryGroup,
   AssignmentDiscoveryRepo,
   AssignmentForm,
@@ -28,6 +31,18 @@ export async function listAssignments() {
 
 export async function getGithubConnectionStatus() {
   return invoke<GithubConnectionStatus>("get_github_connection_status");
+}
+
+export async function getAppUpdaterOverview() {
+  return invoke<AppUpdaterOverview>("get_app_updater_overview");
+}
+
+export async function checkForAppUpdate(input: { endpoint: string; pubkey: string }) {
+  return invoke<AppUpdateCheckResult>("check_for_app_update", { input });
+}
+
+export async function installAppUpdate(input: { endpoint: string; pubkey: string }) {
+  return invoke<AppUpdateInstallResult>("install_app_update", { input });
 }
 
 export async function launchGithubAuth() {

@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  checkForAppUpdate,
   exportLocalData,
+  getAppUpdaterOverview,
   getGithubConnectionStatus,
   importLocalData,
+  installAppUpdate,
   launchGithubAuth,
 } from "../lib/ezta";
 import type {
+  AppUpdateCheckResult,
+  AppUpdaterOverview,
   EditorPreference,
   GithubConnectionStatus,
   LocalDataSnapshot,
@@ -13,10 +18,19 @@ import type {
 
 const editorAppStorageKey = "ezta.preferredEditorApp";
 const editorCommandStorageKey = "ezta.preferredEditorCommand";
+const updaterEndpointStorageKey = "ezta.updaterEndpoint";
+const updaterPublicKeyStorageKey = "ezta.updaterPublicKey";
+const defaultUpdaterEndpoint =
+  "https://github.com/Phoenixxo/EzTA/releases/latest/download/latest.json";
 
 export function useAppSettings() {
   const [editorAppInput, setEditorAppInput] = useState<EditorPreference>("system");
   const [editorCommandInput, setEditorCommandInput] = useState("");
+  const [updaterEndpointInput, setUpdaterEndpointInput] = useState(defaultUpdaterEndpoint);
+  const [updaterPublicKeyInput, setUpdaterPublicKeyInput] = useState("");
+  const [appUpdaterOverview, setAppUpdaterOverview] = useState<AppUpdaterOverview | null>(null);
+  const [appUpdateResult, setAppUpdateResult] = useState<AppUpdateCheckResult | null>(null);
+  const [appUpdateMessage, setAppUpdateMessage] = useState("");
   const [githubConnectionStatus, setGithubConnectionStatus] =
     useState<GithubConnectionStatus | null>(null);
   const [settingsBusy, setSettingsBusy] = useState(false);
@@ -45,6 +59,9 @@ export function useAppSettings() {
     }
     const storedApp = window.localStorage.getItem(editorAppStorageKey);
     const storedCommand = window.localStorage.getItem(editorCommandStorageKey) ?? "";
+    const storedUpdaterEndpoint =
+      window.localStorage.getItem(updaterEndpointStorageKey) ?? defaultUpdaterEndpoint;
+    const storedUpdaterPublicKey = window.localStorage.getItem(updaterPublicKeyStorageKey) ?? "";
     if (
       storedApp === "system" ||
       storedApp === "vscode" ||
@@ -55,6 +72,8 @@ export function useAppSettings() {
       setEditorAppInput(storedApp);
     }
     setEditorCommandInput(storedCommand);
+    setUpdaterEndpointInput(storedUpdaterEndpoint);
+    setUpdaterPublicKeyInput(storedUpdaterPublicKey);
   }, []);
 
   useEffect(() => {
@@ -63,7 +82,9 @@ export function useAppSettings() {
     }
     window.localStorage.setItem(editorAppStorageKey, editorAppInput);
     window.localStorage.setItem(editorCommandStorageKey, editorCommandInput);
-  }, [editorAppInput, editorCommandInput]);
+    window.localStorage.setItem(updaterEndpointStorageKey, updaterEndpointInput);
+    window.localStorage.setItem(updaterPublicKeyStorageKey, updaterPublicKeyInput);
+  }, [editorAppInput, editorCommandInput, updaterEndpointInput, updaterPublicKeyInput]);
 
   useEffect(() => {
     function handleStorage(event: StorageEvent) {
@@ -81,6 +102,12 @@ export function useAppSettings() {
       if (event.key === editorCommandStorageKey) {
         setEditorCommandInput(event.newValue ?? "");
       }
+      if (event.key === updaterEndpointStorageKey) {
+        setUpdaterEndpointInput(event.newValue ?? defaultUpdaterEndpoint);
+      }
+      if (event.key === updaterPublicKeyStorageKey) {
+        setUpdaterPublicKeyInput(event.newValue ?? "");
+      }
     }
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
@@ -88,7 +115,17 @@ export function useAppSettings() {
 
   useEffect(() => {
     void refreshGithubConnectionStatus();
+    void refreshAppUpdaterOverview();
   }, []);
+
+  async function refreshAppUpdaterOverview() {
+    try {
+      const overview = await getAppUpdaterOverview();
+      setAppUpdaterOverview(overview);
+    } catch {
+      setAppUpdaterOverview(null);
+    }
+  }
 
   async function refreshGithubConnectionStatus() {
     setSettingsBusy(true);
@@ -127,6 +164,42 @@ export function useAppSettings() {
     }
   }
 
+  async function checkAppUpdate() {
+    setSettingsBusy(true);
+    setAppUpdateMessage("");
+    try {
+      const result = await checkForAppUpdate({
+        endpoint: updaterEndpointInput,
+        pubkey: updaterPublicKeyInput,
+      });
+      setAppUpdateResult(result);
+      setAppUpdateMessage(
+        result.available
+          ? `Update ${result.version ?? "available"} is ready to install.`
+          : `EzTA ${result.currentVersion} is already up to date.`,
+      );
+    } catch (err) {
+      setAppUpdateResult(null);
+      setAppUpdateMessage(String(err));
+    } finally {
+      setSettingsBusy(false);
+    }
+  }
+
+  async function runAppUpdateInstall() {
+    setSettingsBusy(true);
+    setAppUpdateMessage("Downloading and installing the update. EzTA will restart when it finishes.");
+    try {
+      await installAppUpdate({
+        endpoint: updaterEndpointInput,
+        pubkey: updaterPublicKeyInput,
+      });
+    } catch (err) {
+      setAppUpdateMessage(String(err));
+      setSettingsBusy(false);
+    }
+  }
+
   async function exportAppData() {
     setSettingsBusy(true);
     setDataSafetyMessage("");
@@ -136,6 +209,8 @@ export function useAppSettings() {
         appSettings: {
           editorApp: editorAppInput,
           editorCommand: editorCommandInput,
+          updaterEndpoint: updaterEndpointInput,
+          updaterPublicKey: updaterPublicKeyInput,
         },
         backendSnapshot,
       };
@@ -166,6 +241,8 @@ export function useAppSettings() {
         appSettings?: {
           editorApp?: EditorPreference;
           editorCommand?: string;
+          updaterEndpoint?: string;
+          updaterPublicKey?: string;
         };
         backendSnapshot?: LocalDataSnapshot;
       };
@@ -178,6 +255,12 @@ export function useAppSettings() {
       }
       if (typeof parsed.appSettings?.editorCommand === "string") {
         setEditorCommandInput(parsed.appSettings.editorCommand);
+      }
+      if (typeof parsed.appSettings?.updaterEndpoint === "string") {
+        setUpdaterEndpointInput(parsed.appSettings.updaterEndpoint);
+      }
+      if (typeof parsed.appSettings?.updaterPublicKey === "string") {
+        setUpdaterPublicKeyInput(parsed.appSettings.updaterPublicKey);
       }
       setDataSafetyMessage(
         "Imported EzTA backup data. Reopen the main window to refresh queue state if needed.",
@@ -194,6 +277,13 @@ export function useAppSettings() {
     setEditorAppInput,
     editorCommandInput,
     setEditorCommandInput,
+    updaterEndpointInput,
+    setUpdaterEndpointInput,
+    updaterPublicKeyInput,
+    setUpdaterPublicKeyInput,
+    appUpdaterOverview,
+    appUpdateResult,
+    appUpdateMessage,
     resolvedEditorCommand,
     githubConnectionStatus,
     githubAuthMessage,
@@ -201,6 +291,8 @@ export function useAppSettings() {
     settingsBusy,
     refreshGithubConnectionStatus,
     startGithubAuth,
+    checkAppUpdate,
+    runAppUpdateInstall,
     exportAppData,
     importAppData,
   };

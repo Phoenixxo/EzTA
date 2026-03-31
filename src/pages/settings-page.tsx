@@ -4,16 +4,30 @@ import { Breadcrumbs } from "../components/navigation/breadcrumbs";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { PanelShell } from "../components/workspace/panel-shell";
-import type { EditorPreference, GithubConnectionStatus } from "../types/ezta";
+import type {
+  AppUpdateCheckResult,
+  AppUpdaterOverview,
+  EditorPreference,
+  GithubConnectionStatus,
+} from "../types/ezta";
 
 type SettingsPageProps = {
   editorAppInput: EditorPreference;
   onEditorAppInputChange: (value: EditorPreference) => void;
   editorCommandInput: string;
   onEditorCommandInputChange: (value: string) => void;
+  updaterOverview: AppUpdaterOverview | null;
+  updaterEndpointInput: string;
+  onUpdaterEndpointInputChange: (value: string) => void;
+  updaterPublicKeyInput: string;
+  onUpdaterPublicKeyInputChange: (value: string) => void;
+  appUpdateResult: AppUpdateCheckResult | null;
+  appUpdateMessage: string;
   githubConnectionStatus: GithubConnectionStatus | null;
   githubAuthMessage: string;
   dataSafetyMessage: string;
+  onCheckAppUpdate: () => void;
+  onInstallAppUpdate: () => void;
   onStartGithubAuth: () => void;
   onRefreshGithubConnectionStatus: () => void;
   onExportAppData: () => void;
@@ -27,9 +41,18 @@ export function SettingsPage({
   onEditorAppInputChange,
   editorCommandInput,
   onEditorCommandInputChange,
+  updaterOverview,
+  updaterEndpointInput,
+  onUpdaterEndpointInputChange,
+  updaterPublicKeyInput,
+  onUpdaterPublicKeyInputChange,
+  appUpdateResult,
+  appUpdateMessage,
   githubConnectionStatus,
   githubAuthMessage,
   dataSafetyMessage,
+  onCheckAppUpdate,
+  onInstallAppUpdate,
   onStartGithubAuth,
   onRefreshGithubConnectionStatus,
   onExportAppData,
@@ -96,6 +119,59 @@ export function SettingsPage({
               label="Persistence"
               description="These preferences are saved locally for this EzTA installation and reused across sessions."
               value="Saved automatically"
+            />
+          </div>
+        </PanelShell>
+
+        <PanelShell
+          title="Updates"
+          subtitle="Runtime updater configuration for signed GitHub releases"
+        >
+          <div className="bg-white">
+            <SettingRow
+              label="Current version"
+              description="The version of EzTA currently running on this machine."
+              value={updaterOverview?.currentVersion ?? "Loading app version..."}
+            />
+            <SettingRow
+              label="Update feed endpoint"
+              description="Point this at the signed `latest.json` artifact published with your GitHub release."
+              control={
+                <Input
+                  value={updaterEndpointInput}
+                  onChange={(event) => onUpdaterEndpointInputChange(event.currentTarget.value)}
+                  className="h-10 rounded-none"
+                  placeholder="https://github.com/owner/repo/releases/latest/download/latest.json"
+                />
+              }
+            />
+            <SettingRow
+              label="Updater public key"
+              description="Paste the Tauri updater public key. EzTA uses it to verify downloaded updates before install."
+              control={
+                <textarea
+                  value={updaterPublicKeyInput}
+                  onChange={(event) => onUpdaterPublicKeyInputChange(event.currentTarget.value)}
+                  className="min-h-28 w-full rounded-none border border-zinc-300 bg-white px-3 py-3 text-sm text-zinc-900 outline-none focus:border-zinc-500"
+                  placeholder="Paste updater public key"
+                />
+              }
+            />
+            <SettingRow
+              label="Update status"
+              description="Check for a newer signed release, then install it from here."
+              value={
+                appUpdateMessage ||
+                "Check for updates after you configure the endpoint and public key."
+              }
+              control={
+                <UpdateActions
+                  busy={busy}
+                  result={appUpdateResult}
+                  onCheck={onCheckAppUpdate}
+                  onInstall={onInstallAppUpdate}
+                />
+              }
             />
           </div>
         </PanelShell>
@@ -189,6 +265,48 @@ export function SettingsPage({
           </div>
         </PanelShell>
       </div>
+    </div>
+  );
+}
+
+function UpdateActions({
+  busy,
+  result,
+  onCheck,
+  onInstall,
+}: {
+  busy: boolean;
+  result: AppUpdateCheckResult | null;
+  onCheck: () => void;
+  onInstall: () => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" size="sm" variant="outline" onClick={onCheck} disabled={busy}>
+          Check for updates
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="accent"
+          onClick={onInstall}
+          disabled={busy || !result?.available}
+        >
+          Install update
+        </Button>
+      </div>
+      {result?.available ? (
+        <div className="border border-emerald-700 bg-emerald-100 px-3 py-2 text-sm text-emerald-950">
+          Update {result.version ?? "available"}
+          {result.date ? ` · ${result.date}` : ""}
+          {result.body ? (
+            <div className="mt-2 whitespace-pre-wrap break-words text-xs leading-5 text-emerald-950">
+              {result.body}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

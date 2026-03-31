@@ -12,9 +12,18 @@ export function SettingsWindowPage() {
         onEditorAppInputChange={settings.setEditorAppInput}
         editorCommandInput={settings.editorCommandInput}
         onEditorCommandInputChange={settings.setEditorCommandInput}
+        updaterOverview={settings.appUpdaterOverview}
+        updaterEndpointInput={settings.updaterEndpointInput}
+        onUpdaterEndpointInputChange={settings.setUpdaterEndpointInput}
+        updaterPublicKeyInput={settings.updaterPublicKeyInput}
+        onUpdaterPublicKeyInputChange={settings.setUpdaterPublicKeyInput}
+        appUpdateResult={settings.appUpdateResult}
+        appUpdateMessage={settings.appUpdateMessage}
         githubConnectionStatus={settings.githubConnectionStatus}
         githubAuthMessage={settings.githubAuthMessage}
         dataSafetyMessage={settings.dataSafetyMessage}
+        onCheckAppUpdate={() => void settings.checkAppUpdate()}
+        onInstallAppUpdate={() => void settings.runAppUpdateInstall()}
         onStartGithubAuth={() => void settings.startGithubAuth()}
         onRefreshGithubConnectionStatus={() => void settings.refreshGithubConnectionStatus()}
         onExportAppData={() => void settings.exportAppData()}

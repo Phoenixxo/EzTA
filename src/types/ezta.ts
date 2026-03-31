@@ -24,6 +24,23 @@ export type GithubConnectionStatus = {
   detail: string | null;
 };
 
+export type AppUpdaterOverview = {
+  currentVersion: string;
+};
+
+export type AppUpdateCheckResult = {
+  currentVersion: string;
+  available: boolean;
+  version: string | null;
+  date: string | null;
+  body: string | null;
+};
+
+export type AppUpdateInstallResult = {
+  installedVersion: string;
+  restarted: boolean;
+};
+
 export type AssignmentDiscoveryGroup = {
   groupKey: string;
   githubOrg: string;

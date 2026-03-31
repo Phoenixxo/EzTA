@@ -6,7 +6,7 @@ mod state;
 
 use std::fs;
 use std::sync::Arc;
-use std::sync::atomic::AtomicI64;
+use std::sync::atomic::{AtomicBool, AtomicI64};
 
 use tauri::Manager;
 
@@ -41,13 +41,18 @@ pub fn run() {
                 db: std::sync::Mutex::new(conn),
                 jobs: Arc::new(std::sync::Mutex::new(Vec::new())),
                 next_job_id: Arc::new(AtomicI64::new(1)),
+                update_in_progress: Arc::new(AtomicBool::new(false)),
             });
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             commands::github_commands::get_github_connection_status,
             commands::github_commands::launch_github_auth,
+            commands::updater_commands::get_app_updater_overview,
+            commands::updater_commands::check_for_app_update,
+            commands::updater_commands::install_app_update,
             commands::assignment_commands::list_assignments,
             commands::github_commands::refresh_org_repo_index,
             commands::github_commands::discover_assignment_candidates,

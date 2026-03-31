@@ -5,3 +5,4 @@ pub mod github_commands;
 pub mod job_commands;
 pub mod review_commands;
 pub mod support;
+pub mod updater_commands;
