@@ -4,6 +4,7 @@ import {
   Layers3,
   LoaderCircle,
   RefreshCcw,
+  Search,
   WandSparkles,
 } from "lucide-react";
 import {
@@ -33,10 +34,13 @@ export function AssignmentDiscoveryPanel({
   busy,
   className,
 }: AssignmentDiscoveryPanelProps) {
+  const groupsPerPage = 8;
   const [githubOrg, setGithubOrg] = useState("");
   const [groups, setGroups] = useState<AssignmentDiscoveryGroup[]>([]);
   const [selectedGroupKey, setSelectedGroupKey] = useState<string | null>(null);
   const [groupRepos, setGroupRepos] = useState<AssignmentDiscoveryRepo[]>([]);
+  const [groupSearch, setGroupSearch] = useState("");
+  const [groupPage, setGroupPage] = useState(1);
   const [error, setError] = useState("");
   const [indexStatus, setIndexStatus] = useState<OrgRepoIndexStatus | null>(
     null,
@@ -90,6 +94,7 @@ export function AssignmentDiscoveryPanel({
     setError("");
     setSelectedGroupKey(null);
     setGroupRepos([]);
+    setGroupPage(1);
     try {
       const discovered = await discoverAssignmentGroups(githubOrg.trim());
       setGroups(discovered);
@@ -131,6 +136,28 @@ export function AssignmentDiscoveryPanel({
       deadlineAt: "",
     });
   }
+
+  const normalizedGroupSearch = groupSearch.trim().toLowerCase();
+  const filteredGroups = groups.filter((group) => {
+    if (!normalizedGroupSearch) {
+      return true;
+    }
+    if (group.groupKey.toLowerCase().includes(normalizedGroupSearch)) {
+      return true;
+    }
+    return group.examples.some((example) =>
+      example.toLowerCase().includes(normalizedGroupSearch),
+    );
+  });
+  const totalGroupPages = Math.max(
+    1,
+    Math.ceil(filteredGroups.length / groupsPerPage),
+  );
+  const safeGroupPage = Math.min(groupPage, totalGroupPages);
+  const paginatedGroups = filteredGroups.slice(
+    (safeGroupPage - 1) * groupsPerPage,
+    safeGroupPage * groupsPerPage,
+  );
 
   return (
     <PanelShell
@@ -196,7 +223,30 @@ export function AssignmentDiscoveryPanel({
 
         <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(280px,0.85fr)_minmax(0,1.15fr)]">
           <div className="min-h-0 space-y-2 overflow-y-auto rounded-none border border-zinc-300 bg-[#fbfbfa] p-3">
-            {groups.map((group) => (
+            <div className="sticky top-0 z-10 bg-[#fbfbfa] pb-2">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                <Input
+                  value={groupSearch}
+                  onChange={(event) => {
+                    setGroupSearch(event.currentTarget.value);
+                    setGroupPage(1);
+                  }}
+                  placeholder="Search groups"
+                  className="h-10 rounded-none pl-10"
+                />
+              </div>
+            </div>
+
+            {!filteredGroups.length ? (
+              <div className="rounded-none border border-dashed border-zinc-300 bg-white px-3 py-4 text-sm text-zinc-500">
+                {groups.length === 0
+                  ? "No groups loaded yet."
+                  : "No groups match that search."}
+              </div>
+            ) : null}
+
+            {paginatedGroups.map((group) => (
               <div
                 key={`${group.githubOrg}-${group.groupKey}`}
                 className="rounded-none border border-zinc-300 bg-[#fbfbfa] p-3"
@@ -248,6 +298,38 @@ export function AssignmentDiscoveryPanel({
                 </div>
               </div>
             ))}
+
+            {filteredGroups.length > groupsPerPage ? (
+              <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 border-t border-zinc-300 bg-[#fbfbfa] pt-3">
+                <div className="text-xs text-zinc-500">
+                  Page {safeGroupPage} of {totalGroupPages}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setGroupPage((current) => Math.max(1, current - 1))}
+                    disabled={safeGroupPage <= 1}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      setGroupPage((current) =>
+                        Math.min(totalGroupPages, current + 1),
+                      )
+                    }
+                    disabled={safeGroupPage >= totalGroupPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="rounded-none border border-zinc-300 bg-[#fbfbfa]">
