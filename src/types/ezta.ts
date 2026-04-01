@@ -11,7 +11,7 @@ export type Assignment = {
   updatedAt: number;
 };
 
-export type EditorPreference = "system" | "vscode" | "cursor" | "zed" | "custom";
+export type EditorPreference = "system" | "application";
 
 export type GithubConnectionStatus = {
   gitInstalled: boolean;

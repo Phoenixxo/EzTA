@@ -15,8 +15,9 @@ import type {
 type SettingsPageProps = {
   editorAppInput: EditorPreference;
   onEditorAppInputChange: (value: EditorPreference) => void;
-  editorCommandInput: string;
-  onEditorCommandInputChange: (value: string) => void;
+  editorApplicationPathInput: string;
+  onEditorApplicationPathInputChange: (value: string) => void;
+  onChooseEditorApplication: () => void;
   updaterOverview: AppUpdaterOverview | null;
   appUpdateResult: AppUpdateCheckResult | null;
   appUpdateMessage: string;
@@ -36,8 +37,9 @@ type SettingsPageProps = {
 export function SettingsPage({
   editorAppInput,
   onEditorAppInputChange,
-  editorCommandInput,
-  onEditorCommandInputChange,
+  editorApplicationPathInput,
+  onEditorApplicationPathInputChange,
+  onChooseEditorApplication,
   updaterOverview,
   appUpdateResult,
   appUpdateMessage,
@@ -57,7 +59,7 @@ export function SettingsPage({
   const hasGh = githubConnectionStatus?.ghInstalled ?? false;
   const hasAuth = githubConnectionStatus?.ghAuthenticated ?? false;
   const editorConfigured =
-    editorAppInput !== "system" || Boolean(editorCommandInput.trim());
+    editorAppInput !== "system" || Boolean(editorApplicationPathInput.trim());
   const setupStage = !hasGit ? "install-git" : !hasGh ? "install-gh" : !hasAuth ? "authenticate-gh" : "ready";
 
   return (
@@ -87,24 +89,46 @@ export function SettingsPage({
                   className="h-10 w-full rounded-none border border-zinc-300 bg-white px-3 text-sm text-zinc-900 outline-none focus:border-zinc-500"
                 >
                   <option value="system">System default</option>
-                  <option value="vscode">Visual Studio Code</option>
-                  <option value="cursor">Cursor</option>
-                  <option value="zed">Zed</option>
-                  <option value="custom">Custom command</option>
+                  <option value="application">Chosen application</option>
                 </select>
               }
             />
-            {editorAppInput === "custom" ? (
+            {editorAppInput === "application" ? (
               <SettingRow
-                label="Custom editor command"
-                description="Examples: `code`, `cursor`, `zed`, or another CLI launcher."
+                label="Chosen application"
+                description="Pick the editor application EzTA should use when opening repos and files."
                 control={
-                  <Input
-                    value={editorCommandInput}
-                    onChange={(event) => onEditorCommandInputChange(event.currentTarget.value)}
-                    className="h-10 rounded-none"
-                    placeholder="Custom editor command"
-                  />
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={onChooseEditorApplication}
+                      >
+                        Choose application
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          onEditorAppInputChange("system");
+                          onEditorApplicationPathInputChange("");
+                        }}
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                    <Input
+                      value={editorApplicationPathInput}
+                      onChange={(event) =>
+                        onEditorApplicationPathInputChange(event.currentTarget.value)
+                      }
+                      className="h-10 rounded-none"
+                      placeholder="Path to chosen editor application"
+                    />
+                  </div>
                 }
               />
             ) : null}

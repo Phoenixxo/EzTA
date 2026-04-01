@@ -51,7 +51,7 @@ export function useEztaWorkspace() {
   const [deadlineInput, setDeadlineInput] = useState("");
   const [repoTemplateInput, setRepoTemplateInput] = useState("");
   const [editorAppInput, setEditorAppInput] = useState<EditorPreference>("system");
-  const [editorCommandInput, setEditorCommandInput] = useState("");
+  const [editorApplicationPathInput, setEditorApplicationPathInput] = useState("");
   const [rosterInput, setRosterInput] = useState("");
   const [notesInput, setNotesInput] = useState("");
   const [statusInput, setStatusInput] = useState("not_started");
@@ -75,33 +75,23 @@ export function useEztaWorkspace() {
     [queueSort, repoQuery, repos, statusFilter],
   );
 
-  const resolvedEditorCommand = useMemo(() => {
-    switch (editorAppInput) {
-      case "vscode":
-        return "code";
-      case "cursor":
-        return "cursor";
-      case "zed":
-        return "zed";
-      case "custom":
-        return editorCommandInput.trim();
-      case "system":
-      default:
-        return "";
-    }
-  }, [editorAppInput, editorCommandInput]);
+  const resolvedEditorApplication = useMemo(
+    () =>
+      editorAppInput === "application" ? editorApplicationPathInput.trim() : "",
+    [editorAppInput, editorApplicationPathInput],
+  );
 
   useEffect(() => {
     void loadAssignments();
   }, []);
 
   useEffect(() => {
-    const { app, command } = readStoredEditorPreference();
+    const { app, applicationPath } = readStoredEditorPreference();
     const storedWorkspaceSelection = readStoredWorkspaceSelection();
     if (app) {
       setEditorAppInput(app);
     }
-    setEditorCommandInput(command);
+    setEditorApplicationPathInput(applicationPath);
     if (storedWorkspaceSelection.assignmentId) {
       setSelectedAssignmentId(storedWorkspaceSelection.assignmentId);
     }
@@ -120,8 +110,8 @@ export function useEztaWorkspace() {
   }, []);
 
   useEffect(() => {
-    writeStoredEditorPreference(editorAppInput, editorCommandInput);
-  }, [editorAppInput, editorCommandInput]);
+    writeStoredEditorPreference(editorAppInput, editorApplicationPathInput);
+  }, [editorAppInput, editorApplicationPathInput]);
 
   useEffect(() => {
     writeStoredSelectedAssignmentId(selectedAssignmentId);
@@ -139,7 +129,7 @@ export function useEztaWorkspace() {
     function handleStorage(event: StorageEvent) {
       syncEditorPreferenceFromStorageEvent(event, {
         setEditorAppInput,
-        setEditorCommandInput,
+        setEditorApplicationPathInput,
       });
     }
     window.addEventListener("storage", handleStorage);
@@ -504,7 +494,7 @@ export function useEztaWorkspace() {
     try {
       await openRepoInEditor({
         studentRepoId: repoId,
-        editorCommand: resolvedEditorCommand,
+        editorCommand: resolvedEditorApplication,
       });
       setMessage("Opened repository in editor.");
     } catch (err) {
@@ -572,7 +562,7 @@ export function useEztaWorkspace() {
     setDeadlineInput,
     repoTemplateInput,
     setRepoTemplateInput,
-    resolvedEditorCommand,
+    resolvedEditorApplication,
     rosterInput,
     setRosterInput,
     notesInput,

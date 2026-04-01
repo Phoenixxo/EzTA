@@ -2,7 +2,7 @@ import type { EditorPreference, QueueSort, ReviewStatusFilter } from "../types/e
 
 export const eztaStorageKeys = {
   editorApp: "ezta.preferredEditorApp",
-  editorCommand: "ezta.preferredEditorCommand",
+  editorApplicationPath: "ezta.preferredEditorApplicationPath",
   selectedAssignmentId: "ezta.selectedAssignmentId",
   selectedRepoId: "ezta.selectedRepoId",
   statusFilter: "ezta.statusFilter",
@@ -12,25 +12,29 @@ export const eztaStorageKeys = {
 
 export function readStoredEditorPreference(): {
   app: EditorPreference | null;
-  command: string;
+  applicationPath: string;
 } {
   if (typeof window === "undefined") {
-    return { app: null, command: "" };
+    return { app: null, applicationPath: "" };
   }
   const storedApp = window.localStorage.getItem(eztaStorageKeys.editorApp);
-  const storedCommand = window.localStorage.getItem(eztaStorageKeys.editorCommand) ?? "";
+  const storedApplicationPath =
+    window.localStorage.getItem(eztaStorageKeys.editorApplicationPath) ?? "";
   if (isEditorPreference(storedApp)) {
-    return { app: storedApp, command: storedCommand };
+    return { app: storedApp, applicationPath: storedApplicationPath };
   }
-  return { app: null, command: storedCommand };
+  return { app: null, applicationPath: storedApplicationPath };
 }
 
-export function writeStoredEditorPreference(app: EditorPreference, command: string) {
+export function writeStoredEditorPreference(app: EditorPreference, applicationPath: string) {
   if (typeof window === "undefined") {
     return;
   }
   window.localStorage.setItem(eztaStorageKeys.editorApp, app);
-  window.localStorage.setItem(eztaStorageKeys.editorCommand, command);
+  window.localStorage.setItem(
+    eztaStorageKeys.editorApplicationPath,
+    applicationPath,
+  );
 }
 
 export function readStoredWorkspaceSelection(): {
@@ -108,14 +112,14 @@ export function syncEditorPreferenceFromStorageEvent(
   event: StorageEvent,
   handlers: {
     setEditorAppInput: (value: EditorPreference) => void;
-    setEditorCommandInput: (value: string) => void;
+    setEditorApplicationPathInput: (value: string) => void;
   },
 ) {
   if (event.key === eztaStorageKeys.editorApp && isEditorPreference(event.newValue)) {
     handlers.setEditorAppInput(event.newValue);
   }
-  if (event.key === eztaStorageKeys.editorCommand) {
-    handlers.setEditorCommandInput(event.newValue ?? "");
+  if (event.key === eztaStorageKeys.editorApplicationPath) {
+    handlers.setEditorApplicationPathInput(event.newValue ?? "");
   }
 }
 
@@ -125,13 +129,7 @@ function parsePositiveNumber(value: string | null) {
 }
 
 function isEditorPreference(value: string | null): value is EditorPreference {
-  return (
-    value === "system" ||
-    value === "vscode" ||
-    value === "cursor" ||
-    value === "zed" ||
-    value === "custom"
-  );
+  return value === "system" || value === "application";
 }
 
 function isReviewStatusFilter(value: string | null): value is ReviewStatusFilter {

@@ -10,8 +10,9 @@ export function SettingsWindowPage() {
       <SettingsPage
         editorAppInput={settings.editorAppInput}
         onEditorAppInputChange={settings.setEditorAppInput}
-        editorCommandInput={settings.editorCommandInput}
-        onEditorCommandInputChange={settings.setEditorCommandInput}
+        editorApplicationPathInput={settings.editorApplicationPathInput}
+        onEditorApplicationPathInputChange={settings.setEditorApplicationPathInput}
+        onChooseEditorApplication={() => void settings.chooseEditorApplication()}
         updaterOverview={settings.appUpdaterOverview}
         appUpdateResult={settings.appUpdateResult}
         appUpdateMessage={settings.appUpdateMessage}

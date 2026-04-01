@@ -456,18 +456,35 @@ pub fn discard_pending_pr_review(
     Ok(())
 }
 
-pub fn open_path_in_editor(path: &Path, editor_command: Option<&str>) -> AppResult<()> {
-    if let Some(command) = editor_command.map(str::trim).filter(|value| !value.is_empty()) {
-        let parts = command.split_whitespace().collect::<Vec<_>>();
-        let Some((program, args)) = parts.split_first() else {
-            return Err("editor command is empty".to_string());
-        };
-        let mut process = Command::new(program);
-        process.args(args).arg(path);
-        process
-            .spawn()
-            .map_err(|err| format!("failed to open editor {}: {}", command, err))?;
-        return Ok(());
+pub fn open_path_in_editor(path: &Path, editor_application: Option<&str>) -> AppResult<()> {
+    if let Some(application) = editor_application.map(str::trim).filter(|value| !value.is_empty()) {
+        #[cfg(target_os = "macos")]
+        {
+            Command::new("open")
+                .args(["-a", application])
+                .arg(path)
+                .spawn()
+                .map_err(|err| format!("failed to open editor application {}: {}", application, err))?;
+            return Ok(());
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            Command::new(application)
+                .arg(path)
+                .spawn()
+                .map_err(|err| format!("failed to open editor application {}: {}", application, err))?;
+            return Ok(());
+        }
+
+        #[cfg(target_os = "linux")]
+        {
+            Command::new(application)
+                .arg(path)
+                .spawn()
+                .map_err(|err| format!("failed to open editor application {}: {}", application, err))?;
+            return Ok(());
+        }
     }
 
     #[cfg(target_os = "macos")]

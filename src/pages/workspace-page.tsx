@@ -326,7 +326,7 @@ export function WorkspacePage() {
         return (
           <ReviewWorkspace
             selectedRepo={workspace.selectedRepo}
-            editorCommand={workspace.resolvedEditorCommand}
+            editorCommand={workspace.resolvedEditorApplication}
             onBack={() =>
               setRoute({
                 page: "student",

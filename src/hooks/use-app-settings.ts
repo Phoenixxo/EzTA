@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { open } from "@tauri-apps/plugin-dialog";
 import {
   checkForAppUpdate,
   exportLocalData,
@@ -17,11 +18,11 @@ import type {
 } from "../types/ezta";
 
 const editorAppStorageKey = "ezta.preferredEditorApp";
-const editorCommandStorageKey = "ezta.preferredEditorCommand";
+const editorApplicationPathStorageKey = "ezta.preferredEditorApplicationPath";
 
 export function useAppSettings() {
   const [editorAppInput, setEditorAppInput] = useState<EditorPreference>("system");
-  const [editorCommandInput, setEditorCommandInput] = useState("");
+  const [editorApplicationPathInput, setEditorApplicationPathInput] = useState("");
   const [appUpdaterOverview, setAppUpdaterOverview] = useState<AppUpdaterOverview | null>(null);
   const [appUpdateResult, setAppUpdateResult] = useState<AppUpdateCheckResult | null>(null);
   const [appUpdateMessage, setAppUpdateMessage] = useState("");
@@ -31,38 +32,23 @@ export function useAppSettings() {
   const [githubAuthMessage, setGithubAuthMessage] = useState("");
   const [dataSafetyMessage, setDataSafetyMessage] = useState("");
 
-  const resolvedEditorCommand = useMemo(() => {
-    switch (editorAppInput) {
-      case "vscode":
-        return "code";
-      case "cursor":
-        return "cursor";
-      case "zed":
-        return "zed";
-      case "custom":
-        return editorCommandInput.trim();
-      case "system":
-      default:
-        return "";
-    }
-  }, [editorAppInput, editorCommandInput]);
+  const resolvedEditorApplication = useMemo(
+    () =>
+      editorAppInput === "application" ? editorApplicationPathInput.trim() : "",
+    [editorAppInput, editorApplicationPathInput],
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
     const storedApp = window.localStorage.getItem(editorAppStorageKey);
-    const storedCommand = window.localStorage.getItem(editorCommandStorageKey) ?? "";
-    if (
-      storedApp === "system" ||
-      storedApp === "vscode" ||
-      storedApp === "cursor" ||
-      storedApp === "zed" ||
-      storedApp === "custom"
-    ) {
+    const storedApplicationPath =
+      window.localStorage.getItem(editorApplicationPathStorageKey) ?? "";
+    if (storedApp === "system" || storedApp === "application") {
       setEditorAppInput(storedApp);
     }
-    setEditorCommandInput(storedCommand);
+    setEditorApplicationPathInput(storedApplicationPath);
   }, []);
 
   useEffect(() => {
@@ -70,24 +56,21 @@ export function useAppSettings() {
       return;
     }
     window.localStorage.setItem(editorAppStorageKey, editorAppInput);
-    window.localStorage.setItem(editorCommandStorageKey, editorCommandInput);
-  }, [editorAppInput, editorCommandInput]);
+    window.localStorage.setItem(
+      editorApplicationPathStorageKey,
+      editorApplicationPathInput,
+    );
+  }, [editorAppInput, editorApplicationPathInput]);
 
   useEffect(() => {
     function handleStorage(event: StorageEvent) {
       if (event.key === editorAppStorageKey && event.newValue) {
-        if (
-          event.newValue === "system" ||
-          event.newValue === "vscode" ||
-          event.newValue === "cursor" ||
-          event.newValue === "zed" ||
-          event.newValue === "custom"
-        ) {
+        if (event.newValue === "system" || event.newValue === "application") {
           setEditorAppInput(event.newValue);
         }
       }
-      if (event.key === editorCommandStorageKey) {
-        setEditorCommandInput(event.newValue ?? "");
+      if (event.key === editorApplicationPathStorageKey) {
+        setEditorApplicationPathInput(event.newValue ?? "");
       }
     }
     window.addEventListener("storage", handleStorage);
@@ -175,6 +158,30 @@ export function useAppSettings() {
     }
   }
 
+  async function chooseEditorApplication() {
+    const selected = await open({
+      title: "Choose preferred editor application",
+      multiple: false,
+      directory: false,
+      filters: [
+        {
+          name: "Applications",
+          extensions:
+            navigator.userAgent.includes("Windows")
+              ? ["exe"]
+              : navigator.userAgent.includes("Mac")
+                ? ["app"]
+                : [],
+        },
+      ],
+    });
+    if (!selected || Array.isArray(selected)) {
+      return;
+    }
+    setEditorAppInput("application");
+    setEditorApplicationPathInput(selected);
+  }
+
   async function exportAppData() {
     setSettingsBusy(true);
     setDataSafetyMessage("");
@@ -183,7 +190,7 @@ export function useAppSettings() {
       const payload = {
         appSettings: {
           editorApp: editorAppInput,
-          editorCommand: editorCommandInput,
+          editorApplicationPath: editorApplicationPathInput,
         },
         backendSnapshot,
       };
@@ -213,7 +220,7 @@ export function useAppSettings() {
       const parsed = JSON.parse(text) as {
         appSettings?: {
           editorApp?: EditorPreference;
-          editorCommand?: string;
+          editorApplicationPath?: string;
         };
         backendSnapshot?: LocalDataSnapshot;
       };
@@ -224,8 +231,8 @@ export function useAppSettings() {
       if (parsed.appSettings?.editorApp) {
         setEditorAppInput(parsed.appSettings.editorApp);
       }
-      if (typeof parsed.appSettings?.editorCommand === "string") {
-        setEditorCommandInput(parsed.appSettings.editorCommand);
+      if (typeof parsed.appSettings?.editorApplicationPath === "string") {
+        setEditorApplicationPathInput(parsed.appSettings.editorApplicationPath);
       }
       setDataSafetyMessage(
         "Imported EzTA backup data. Reopen the main window to refresh queue state if needed.",
@@ -240,12 +247,13 @@ export function useAppSettings() {
   return {
     editorAppInput,
     setEditorAppInput,
-    editorCommandInput,
-    setEditorCommandInput,
+    editorApplicationPathInput,
+    setEditorApplicationPathInput,
     appUpdaterOverview,
     appUpdateResult,
     appUpdateMessage,
-    resolvedEditorCommand,
+    resolvedEditorApplication,
+    chooseEditorApplication,
     githubConnectionStatus,
     githubAuthMessage,
     dataSafetyMessage,
