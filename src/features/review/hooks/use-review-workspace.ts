@@ -17,7 +17,6 @@ import type {
   FileContentResult,
   FileDiffResult,
   ReviewFileData,
-  ReviewSubmissionEvent,
   SubmitPendingReviewResult,
   StudentRepo,
 } from "../../../types/ezta";
@@ -41,8 +40,6 @@ export function useReviewWorkspace(selectedRepo: StudentRepo | null, active: boo
   const [draftStartLine, setDraftStartLine] = useState("1");
   const [draftEndLine, setDraftEndLine] = useState("1");
   const [draftSide, setDraftSide] = useState("submission");
-  const [reviewSubmissionEvent, setReviewSubmissionEvent] =
-    useState<ReviewSubmissionEvent>("COMMENT");
   const [reviewSubmissionBody, setReviewSubmissionBody] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -63,7 +60,6 @@ export function useReviewWorkspace(selectedRepo: StudentRepo | null, active: boo
       setDraftStartLine("1");
       setDraftEndLine("1");
       setDraftSide("submission");
-      setReviewSubmissionEvent("COMMENT");
       setReviewSubmissionBody("");
       setError("");
       return;
@@ -307,7 +303,7 @@ export function useReviewWorkspace(selectedRepo: StudentRepo | null, active: boo
     try {
       const job = await startSubmitPendingReviewJob({
         studentRepoId: selectedRepo.id,
-        event: reviewSubmissionEvent,
+        event: "COMMENT",
         body: reviewSubmissionBody,
       });
       setSubmitJobId(job.id);
@@ -348,8 +344,6 @@ export function useReviewWorkspace(selectedRepo: StudentRepo | null, active: boo
     setDraftEndLine,
     draftSide,
     setDraftSide,
-    reviewSubmissionEvent,
-    setReviewSubmissionEvent,
     reviewSubmissionBody,
     setReviewSubmissionBody,
     busy,

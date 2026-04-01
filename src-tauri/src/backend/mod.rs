@@ -77,6 +77,7 @@ pub fn run() {
             commands::review_commands::delete_draft_comment,
             commands::editor_commands::open_repo_in_editor,
             commands::editor_commands::open_file_in_editor,
+            commands::editor_commands::open_external_link,
             commands::review_commands::publish_draft_comments,
             commands::review_commands::submit_pending_review,
             commands::review_commands::discard_pending_review,

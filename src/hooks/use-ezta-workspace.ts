@@ -8,6 +8,7 @@ import {
   listCommitOptions,
   listStudentRepos,
   openRepoInEditor,
+  openExternalLink,
   saveReviewTarget,
   startPrepareReviewJob,
   startSyncAssignmentReposJob,
@@ -223,7 +224,9 @@ export function useEztaWorkspace() {
       await loadRepos(prepareJobAssignmentId);
       if (result?.prUrl) {
         setMessage(`Prepared review PR: ${result.prUrl}`);
-        window.open(result.prUrl, "_blank", "noopener,noreferrer");
+        void openExternalLink(result.prUrl).catch((err) => {
+          setError(String(err));
+        });
       } else {
         setMessage("Prepared review PR.");
       }
@@ -515,7 +518,9 @@ export function useEztaWorkspace() {
     if (!selectedRepo?.prUrl) {
       return;
     }
-    window.open(selectedRepo.prUrl, "_blank", "noopener,noreferrer");
+    void openExternalLink(selectedRepo.prUrl).catch((err) => {
+      setError(String(err));
+    });
   }
 
   async function handleMarkReviewed() {

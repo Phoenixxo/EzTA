@@ -8,7 +8,7 @@ import { Textarea } from "../../../components/ui/textarea";
 import { PanelShell } from "../../../components/workspace/panel-shell";
 import { StatusBadge } from "../../../components/workspace/status-badge";
 import { useReviewWorkspace } from "../hooks/use-review-workspace";
-import { openFileInEditor, openRepoInEditor } from "../../../lib/ezta";
+import { openExternalLink, openFileInEditor, openRepoInEditor } from "../../../lib/ezta";
 import { DraftCommentRow } from "./draft-comment-row";
 import { StructuredDiffPane } from "./structured-diff-pane";
 import { basename, groupChangedFiles, lineToneClass } from "../lib/diff-view";
@@ -135,7 +135,12 @@ export function ReviewWorkspace({ selectedRepo, editorCommand, onBack }: ReviewW
               <Button
                 size="sm"
                 variant="secondary"
-                onClick={() => window.open(selectedRepo.prUrl!, "_blank", "noopener,noreferrer")}
+                onClick={() => {
+                  setEditorError("");
+                  void openExternalLink(selectedRepo.prUrl!).catch((err) =>
+                    setEditorError(String(err)),
+                  );
+                }}
               >
                 <ArrowUpRight className="h-3.5 w-3.5" />
                 Open PR
@@ -304,23 +309,23 @@ export function ReviewWorkspace({ selectedRepo, editorCommand, onBack }: ReviewW
         <div className="grid h-full min-h-0 grid-rows-[auto_1fr] bg-[#fbfbfa]">
           <div className="border-b border-zinc-300 px-3 py-3">
             <div className="space-y-2">
-              <div className="grid gap-2 xl:grid-cols-[100px_100px_1fr]">
+              <div className="grid min-w-0 gap-2 md:grid-cols-[100px_100px_minmax(0,1fr)]">
                 <Input
                   value={review.draftStartLine}
                   onChange={(event) => review.setDraftStartLine(event.currentTarget.value)}
                   placeholder="Start"
-                  className="h-9 rounded-none"
+                  className="h-9 min-w-0 rounded-none"
                 />
                 <Input
                   value={review.draftEndLine}
                   onChange={(event) => review.setDraftEndLine(event.currentTarget.value)}
                   placeholder="End"
-                  className="h-9 rounded-none"
+                  className="h-9 min-w-0 rounded-none"
                 />
                 <select
                   value={review.draftSide}
                   onChange={(event) => review.setDraftSide(event.currentTarget.value)}
-                  className="h-9 rounded-none border border-zinc-300 bg-white px-3 text-sm"
+                  className="h-9 min-w-0 rounded-none border border-zinc-300 bg-white px-3 text-sm"
                 >
                   <option value="submission">submission</option>
                   <option value="base">base</option>
@@ -357,19 +362,6 @@ export function ReviewWorkspace({ selectedRepo, editorCommand, onBack }: ReviewW
                   <div>
                     {queuedComments.length} comment{queuedComments.length === 1 ? "" : "s"} are attached to one pending GitHub review.
                   </div>
-                  <select
-                    value={review.reviewSubmissionEvent}
-                    onChange={(event) =>
-                      review.setReviewSubmissionEvent(
-                        event.currentTarget.value as "COMMENT" | "APPROVE" | "REQUEST_CHANGES",
-                      )
-                    }
-                    className="h-9 w-full rounded-none border border-zinc-300 bg-white px-3 text-sm text-zinc-900"
-                  >
-                    <option value="COMMENT">Comment</option>
-                    <option value="APPROVE">Approve</option>
-                    <option value="REQUEST_CHANGES">Request changes</option>
-                  </select>
                   <Textarea
                     value={review.reviewSubmissionBody}
                     onChange={(event) =>
@@ -377,19 +369,19 @@ export function ReviewWorkspace({ selectedRepo, editorCommand, onBack }: ReviewW
                     }
                     rows={3}
                     className="rounded-none"
-                    placeholder="Optional overall review summary"
+                    placeholder="Optional overall review summary comment"
                   />
-                  <div className="flex gap-2">
+                  <div className="grid gap-2 md:grid-cols-2">
                     <Button
                       type="button"
                       size="sm"
                       variant="accent"
                       onClick={() => void review.submitQueuedReview()}
                       disabled={review.busy}
-                      className="flex-1"
+                      className="min-w-0"
                     >
                       <Send className="h-3.5 w-3.5" />
-                      Submit review
+                      Submit comment review
                     </Button>
                     <Button
                       type="button"
@@ -397,7 +389,7 @@ export function ReviewWorkspace({ selectedRepo, editorCommand, onBack }: ReviewW
                       variant="outline"
                       onClick={() => void review.discardQueuedReview()}
                       disabled={review.busy}
-                      className="flex-1"
+                      className="min-w-0"
                     >
                       Discard pending review
                     </Button>

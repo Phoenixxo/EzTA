@@ -4,6 +4,7 @@ import { Breadcrumbs } from "../components/navigation/breadcrumbs";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { PanelShell } from "../components/workspace/panel-shell";
+import { openExternalLink } from "../lib/ezta";
 import type {
   AppUpdateCheckResult,
   AppUpdaterOverview,
@@ -466,9 +467,9 @@ function GithubConnectFlow({
             type="button"
             size="sm"
             variant="secondary"
-            onClick={() =>
-              window.open("https://git-scm.com/downloads", "_blank", "noopener,noreferrer")
-            }
+            onClick={() => {
+              void openExternalLink("https://git-scm.com/downloads");
+            }}
           >
             Open git downloads
           </Button>
@@ -494,9 +495,9 @@ function GithubConnectFlow({
             type="button"
             size="sm"
             variant="secondary"
-            onClick={() =>
-              window.open("https://cli.github.com/", "_blank", "noopener,noreferrer")
-            }
+            onClick={() => {
+              void openExternalLink("https://cli.github.com/");
+            }}
           >
             Open GitHub CLI docs
           </Button>

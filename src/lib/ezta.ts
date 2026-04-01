@@ -233,6 +233,14 @@ export async function openFileInEditor(input: {
   });
 }
 
+export async function openExternalLink(url: string) {
+  return invoke<void>("open_external_link", {
+    input: {
+      url,
+    },
+  });
+}
+
 export async function publishDraftComments(studentRepoId: number) {
   return invoke<PublishDraftCommentsResult>("publish_draft_comments", { studentRepoId });
 }

@@ -61,28 +61,48 @@ export function useBackgroundJobsPoll(intervalMs = 1000) {
 
   useEffect(() => {
     let cancelled = false;
+    let timeout: number | null = null;
 
     async function pollJobs() {
       try {
         const nextJobs = await listBackgroundJobs();
         if (!cancelled) {
           setJobs(nextJobs);
+          scheduleNext(nextJobs);
         }
       } catch {
         if (!cancelled) {
           setJobs([]);
+          scheduleNext([]);
         }
       }
     }
 
+    function scheduleNext(currentJobs: BackgroundJob[]) {
+      if (cancelled || typeof window === "undefined") {
+        return;
+      }
+      if (document.visibilityState === "hidden") {
+        timeout = window.setTimeout(() => {
+          void pollJobs();
+        }, 15000);
+        return;
+      }
+      const hasActiveJob = currentJobs.some(
+        (job) => job.status === "queued" || job.status === "running",
+      );
+      timeout = window.setTimeout(() => {
+        void pollJobs();
+      }, hasActiveJob ? intervalMs : 15000);
+    }
+
     void pollJobs();
-    const interval = window.setInterval(() => {
-      void pollJobs();
-    }, intervalMs);
 
     return () => {
       cancelled = true;
-      window.clearInterval(interval);
+      if (timeout !== null) {
+        window.clearTimeout(timeout);
+      }
     };
   }, [intervalMs]);
 

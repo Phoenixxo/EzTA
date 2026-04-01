@@ -79,23 +79,23 @@ export function DraftCommentRow({
           This comment is queued in a pending review. Submit or discard the review before editing it.
         </div>
       ) : null}
-      <div className="mb-2 grid gap-2 xl:grid-cols-[100px_100px_1fr]">
+      <div className="mb-2 grid min-w-0 gap-2 md:grid-cols-[100px_100px_minmax(0,1fr)]">
         <Input
           value={startLine}
           onChange={(event) => setStartLine(event.currentTarget.value)}
-          className="h-9 rounded-none"
+          className="h-9 min-w-0 rounded-none"
           disabled={locked}
         />
         <Input
           value={lineNumber}
           onChange={(event) => setLineNumber(event.currentTarget.value)}
-          className="h-9 rounded-none"
+          className="h-9 min-w-0 rounded-none"
           disabled={locked}
         />
         <select
           value={side}
           onChange={(event) => setSide(event.currentTarget.value)}
-          className="h-9 rounded-none border border-zinc-300 bg-white px-3 text-sm"
+          className="h-9 min-w-0 rounded-none border border-zinc-300 bg-white px-3 text-sm"
           disabled={locked}
         >
           <option value="submission">submission</option>
@@ -109,7 +109,7 @@ export function DraftCommentRow({
         className="rounded-none"
         disabled={locked}
       />
-      <div className="mt-2 flex gap-2">
+      <div className="mt-2 grid gap-2 md:grid-cols-2">
         <Button
           type="button"
           size="sm"
@@ -123,10 +123,18 @@ export function DraftCommentRow({
             })
           }
           disabled={locked}
+          className="min-w-0"
         >
           Save
         </Button>
-        <Button type="button" size="sm" variant="danger" onClick={onDelete} disabled={locked}>
+        <Button
+          type="button"
+          size="sm"
+          variant="danger"
+          onClick={onDelete}
+          disabled={locked}
+          className="min-w-0"
+        >
           Delete
         </Button>
       </div>

@@ -7,7 +7,10 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use super::db::parse_rfc3339_utc;
-use super::models::{Assignment, ClassroomRosterRow, DraftComment, GhPendingReview, GhPr, GhPushEvent, StudentRepo};
+use super::models::{
+    Assignment, ClassroomRosterRow, GhAuthenticatedUser, GhExistingReview, GhPendingReview, GhPr,
+    GhPullRequestAuthor, GhPushEvent, PendingReviewComment, StudentRepo,
+};
 use super::AppResult;
 
 fn configured_path() -> String {
@@ -284,25 +287,24 @@ pub fn create_pending_pr_review(
     repo: &StudentRepo,
     pr_number: i64,
     commit_id: &str,
-    comments: &[DraftComment],
+    comments: &[PendingReviewComment],
 ) -> AppResult<GhPendingReview> {
+    clear_stale_pending_pr_review(repo, pr_number)?;
+
     let review_comments = comments
         .iter()
         .map(|draft| {
-            let side = if draft.side.eq_ignore_ascii_case("base") {
-                "LEFT"
-            } else {
-                "RIGHT"
-            };
             let mut comment = json!({
-                "path": draft.file_path,
+                "path": draft.path,
                 "body": draft.body,
-                "side": side,
-                "line": draft.line_number,
+                "side": draft.side,
+                "line": draft.line,
             });
-            if draft.start_line != draft.line_number {
-                comment["start_line"] = json!(draft.start_line);
-                comment["start_side"] = json!(side);
+            if let Some(start_line) = draft.start_line {
+                comment["start_line"] = json!(start_line);
+            }
+            if let Some(start_side) = &draft.start_side {
+                comment["start_side"] = json!(start_side);
             }
             comment
         })
@@ -317,7 +319,94 @@ pub fn create_pending_pr_review(
         "body": "",
         "comments": review_comments,
     });
-    run_json_command_with_json_input("gh", &["api", "-X", "POST", &endpoint, "--input", "-"], None, &payload)
+    run_json_command_with_json_input(
+        "gh",
+        &[
+            "api",
+            "-X",
+            "POST",
+            "-H",
+            "Accept: application/vnd.github+json",
+            "-H",
+            "X-GitHub-Api-Version: 2022-11-28",
+            &endpoint,
+            "--input",
+            "-",
+        ],
+        None,
+        &payload,
+    )
+}
+
+fn list_current_user_pending_review_ids(repo: &StudentRepo, pr_number: i64) -> AppResult<Vec<i64>> {
+    let current_user: GhAuthenticatedUser = run_json_command("gh", &["api", "user"], None)?;
+    let reviews: Vec<GhExistingReview> = run_json_command(
+        "gh",
+        &[
+            "api",
+            "-H",
+            "Accept: application/vnd.github+json",
+            "-H",
+            "X-GitHub-Api-Version: 2022-11-28",
+            &format!("repos/{}/{}/pulls/{}/reviews", repo.repo_owner, repo.repo_name, pr_number),
+        ],
+        None,
+    )?;
+
+    Ok(reviews
+        .into_iter()
+        .filter(|review| {
+            review
+                .state
+                .as_deref()
+                .map(|state| state.eq_ignore_ascii_case("PENDING"))
+                .unwrap_or(false)
+                && review
+                    .user
+                    .as_ref()
+                    .map(|user| user.login.eq_ignore_ascii_case(&current_user.login))
+                    .unwrap_or(false)
+        })
+        .map(|review| review.id)
+        .collect())
+}
+
+fn clear_stale_pending_pr_review(repo: &StudentRepo, pr_number: i64) -> AppResult<()> {
+    for review_id in list_current_user_pending_review_ids(repo, pr_number)? {
+        submit_pending_pr_review(
+            repo,
+            pr_number,
+            review_id,
+            "COMMENT",
+            Some("Submitted automatically by EzTA before queueing a new pending review."),
+        )?;
+    }
+
+    Ok(())
+}
+
+pub fn find_current_pending_pr_review_id(repo: &StudentRepo, pr_number: i64) -> AppResult<Option<i64>> {
+    Ok(list_current_user_pending_review_ids(repo, pr_number)?.into_iter().next())
+}
+
+pub fn current_github_login() -> AppResult<String> {
+    Ok(run_json_command::<GhAuthenticatedUser>("gh", &["api", "user"], None)?.login)
+}
+
+pub fn fetch_pr_author_login(repo: &StudentRepo, pr_number: i64) -> AppResult<Option<String>> {
+    let pr: GhPullRequestAuthor = run_json_command(
+        "gh",
+        &[
+            "api",
+            "-H",
+            "Accept: application/vnd.github+json",
+            "-H",
+            "X-GitHub-Api-Version: 2022-11-28",
+            &format!("repos/{}/{}/pulls/{}", repo.repo_owner, repo.repo_name, pr_number),
+        ],
+        None,
+    )?;
+    Ok(pr.user.map(|user| user.login))
 }
 
 pub fn submit_pending_pr_review(
@@ -335,7 +424,23 @@ pub fn submit_pending_pr_review(
         "event": event,
         "body": body.unwrap_or(""),
     });
-    run_json_command_with_json_input("gh", &["api", "-X", "POST", &endpoint, "--input", "-"], None, &payload)
+    run_json_command_with_json_input(
+        "gh",
+        &[
+            "api",
+            "-X",
+            "POST",
+            "-H",
+            "Accept: application/vnd.github+json",
+            "-H",
+            "X-GitHub-Api-Version: 2022-11-28",
+            &endpoint,
+            "--input",
+            "-",
+        ],
+        None,
+        &payload,
+    )
 }
 
 pub fn discard_pending_pr_review(
@@ -394,4 +499,41 @@ pub fn open_path_in_editor(path: &Path, editor_command: Option<&str>) -> AppResu
 
     #[allow(unreachable_code)]
     Err("unsupported platform for opening editor".to_string())
+}
+
+pub fn open_external_url(url: &str) -> AppResult<()> {
+    let trimmed = url.trim();
+    if trimmed.is_empty() {
+        return Err("url is required".to_string());
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        Command::new("open")
+            .arg(trimmed)
+            .spawn()
+            .map_err(|err| format!("failed to open url: {}", err))?;
+        return Ok(());
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        Command::new("xdg-open")
+            .arg(trimmed)
+            .spawn()
+            .map_err(|err| format!("failed to open url: {}", err))?;
+        return Ok(());
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        Command::new("cmd")
+            .args(["/C", "start", "", trimmed])
+            .spawn()
+            .map_err(|err| format!("failed to open url: {}", err))?;
+        return Ok(());
+    }
+
+    #[allow(unreachable_code)]
+    Err("unsupported platform for opening urls".to_string())
 }

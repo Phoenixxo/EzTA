@@ -78,7 +78,7 @@ pub struct ReviewFileData {
     pub submission_content: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DraftComment {
     pub id: i64,
@@ -98,6 +98,16 @@ pub struct DraftComment {
     pub published_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
+}
+
+#[derive(Debug, Clone)]
+pub struct PendingReviewComment {
+    pub path: String,
+    pub body: String,
+    pub side: String,
+    pub line: i64,
+    pub start_line: Option<i64>,
+    pub start_side: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -322,6 +332,12 @@ pub struct OpenFileInEditorInput {
     pub editor_command: Option<String>,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpenExternalUrlInput {
+    pub url: String,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GithubConnectionStatus {
@@ -385,12 +401,6 @@ pub struct SubmitPendingReviewResult {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct GhDefaultBranchRef {
-    pub name: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct GhRepo {
     pub name: String,
     #[serde(rename = "html_url")]
@@ -415,8 +425,35 @@ pub struct GhPr {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GhPendingReview {
     pub id: i64,
-    #[serde(alias = "html_url", alias = "pull_request_url", alias = "url")]
-    pub html_url: String,
+    pub html_url: Option<String>,
+    pub pull_request_url: Option<String>,
+    pub url: Option<String>,
+}
+
+impl GhPendingReview {
+    pub fn resolved_url(&self) -> Option<&str> {
+        self.html_url
+            .as_deref()
+            .or(self.pull_request_url.as_deref())
+            .or(self.url.as_deref())
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GhReviewUser {
+    pub login: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GhExistingReview {
+    pub id: i64,
+    pub state: Option<String>,
+    pub user: Option<GhReviewUser>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GhPullRequestAuthor {
+    pub user: Option<GhReviewUser>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

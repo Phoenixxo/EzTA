@@ -159,7 +159,7 @@ export type PublishDraftCommentsResult = {
   comments: DraftComment[];
 };
 
-export type ReviewSubmissionEvent = "COMMENT" | "APPROVE" | "REQUEST_CHANGES";
+export type ReviewSubmissionEvent = "COMMENT";
 
 export type SubmitPendingReviewResult = {
   submittedCount: number;

@@ -9,6 +9,7 @@ import {
   NotebookPen,
 } from "lucide-react";
 import { shortSha } from "../../lib/format";
+import { openExternalLink } from "../../lib/ezta";
 import { cn } from "../../lib/utils";
 import type { CommitOptions, StudentRepo } from "../../types/ezta";
 import { Button } from "../ui/button";
@@ -292,13 +293,9 @@ export function InspectorPane({
                       size="sm"
                       variant="secondary"
                       className="min-w-0 max-w-full"
-                      onClick={() =>
-                        window.open(
-                          selectedRepo.prUrl!,
-                          "_blank",
-                          "noopener,noreferrer",
-                        )
-                      }
+                      onClick={() => {
+                        void openExternalLink(selectedRepo.prUrl!).catch(() => {});
+                      }}
                     >
                       <ArrowUpRight className="h-3.5 w-3.5" />
                       Open PR
