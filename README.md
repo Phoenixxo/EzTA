@@ -1,7 +1,11 @@
-# Tauri + React + Typescript
+<div align="center">
+    <h1>EzTA</h1>
+</div>
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+## About
 
-## Recommended IDE Setup
+This tool was created to assist TAs in their workflow and organization of student grading. It is built using Tauri made of a Rust Backend and a React Native Frontend. It uses SQLite to easily store information such as student repos, session information, and settings.
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## Contributing
+
+Please feel free to open issues with any bugs you encounter or features you'd like. As of now, this is a solo developer project, so it's easy to miss things.
