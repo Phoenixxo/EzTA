@@ -572,6 +572,7 @@ pub fn list_commit_options(
             "git",
             &[
                 "rev-list",
+                "--date-order",
                 "--pretty=format:%H\t%cI\t%s",
                 deadline_sha,
             ],

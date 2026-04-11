@@ -63,7 +63,7 @@ export function RepoQueuePane({
           <ChevronRight className="h-3.5 w-3.5" />
         </Button>
       }
-      className={cn("min-h-[calc(100vh-2rem)]", className)}
+      className={cn("min-h-0", className)}
       bodyClassName="grid min-h-0 grid-rows-[auto_auto_1fr]"
     >
       <div className="border-b border-zinc-300 bg-white px-3 py-3">
@@ -160,7 +160,7 @@ export function RepoQueuePane({
         </div>
       </div>
 
-      <div className="min-h-0 overflow-hidden bg-white">
+      <div className="flex min-h-0 flex-col overflow-hidden bg-white">
         <div className="grid grid-cols-[1fr_1.1fr_0.75fr_0.7fr_0.7fr_0.55fr] gap-3 border-b border-zinc-300 bg-zinc-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
           <span>Student</span>
           <span>Repository</span>
@@ -169,7 +169,7 @@ export function RepoQueuePane({
           <span>Submission</span>
           <span>PR</span>
         </div>
-        <div className="min-h-0 max-h-[calc(100vh-13rem)] overflow-y-auto">
+        <div className="min-h-0 flex-1 overflow-y-auto">
           {filteredRepos.length === 0 ? (
             <div className="px-4 py-8 text-sm text-zinc-500">No repositories match the current filter.</div>
           ) : null}

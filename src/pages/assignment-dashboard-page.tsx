@@ -90,7 +90,7 @@ export function AssignmentDashboardPage({
   busy,
 }: AssignmentDashboardPageProps) {
   return (
-    <div className="space-y-4">
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
       <Breadcrumbs
         items={[
           { label: "Assignments", onClick: onOpenAssignments },
@@ -98,71 +98,73 @@ export function AssignmentDashboardPage({
         ]}
       />
 
-      <FileTabs
-        tabs={dashboardTabs}
-        activeTab={tab}
-        onTabChange={onTabChange}
-      />
-
-      {tab === "queue" ? (
-        <RepoQueuePane
-          selectedAssignmentName={assignment?.name ?? null}
-          filteredRepos={filteredRepos}
-          selectedRepoId={selectedRepoId}
-          onSelectRepo={(repoId) => {
-            onSelectRepo(repoId);
-            if (repoId !== null) {
-              onOpenStudent(repoId);
-            }
-          }}
-          onAddRepo={onAddRepo}
-          statusFilter={statusFilter}
-          onStatusFilterChange={onStatusFilterChange}
-          queueSort={queueSort}
-          onQueueSortChange={onQueueSortChange}
-          repoQuery={repoQuery}
-          onRepoQueryChange={onRepoQueryChange}
-          busy={busy}
-          className="rounded-t-none border-t-0"
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <FileTabs
+          tabs={dashboardTabs}
+          activeTab={tab}
+          onTabChange={onTabChange}
         />
-      ) : null}
 
-      {tab === "import" ? (
-        <RosterImportPanel
-          assignment={assignment}
-          repoTemplate={repoTemplateInput}
-          rosterInput={rosterInput}
-          onRosterInputChange={onRosterInputChange}
-          onImportRoster={onImportRoster}
-          onSyncAssignment={onSyncAssignment}
-          busy={busy}
-          className="rounded-t-none border-t-0"
-        />
-      ) : null}
+        {tab === "queue" ? (
+          <RepoQueuePane
+            selectedAssignmentName={assignment?.name ?? null}
+            filteredRepos={filteredRepos}
+            selectedRepoId={selectedRepoId}
+            onSelectRepo={(repoId) => {
+              onSelectRepo(repoId);
+              if (repoId !== null) {
+                onOpenStudent(repoId);
+              }
+            }}
+            onAddRepo={onAddRepo}
+            statusFilter={statusFilter}
+            onStatusFilterChange={onStatusFilterChange}
+            queueSort={queueSort}
+            onQueueSortChange={onQueueSortChange}
+            repoQuery={repoQuery}
+            onRepoQueryChange={onRepoQueryChange}
+            busy={busy}
+            className="h-full min-h-0 rounded-t-none border-t-0"
+          />
+        ) : null}
 
-      {tab === "settings" ? (
-        <AssignmentSettingsPanel
-          assignment={assignment}
-          repoTemplateInput={repoTemplateInput}
-          onRepoTemplateInputChange={onRepoTemplateInputChange}
-          deadlineInput={deadlineInput}
-          onDeadlineInputChange={onDeadlineInputChange}
-          onSave={onSaveAssignmentSettings}
-          onDelete={onDeleteAssignment}
-          busy={busy}
-          className="rounded-t-none border-t-0"
-        />
-      ) : null}
+        {tab === "import" ? (
+          <RosterImportPanel
+            assignment={assignment}
+            repoTemplate={repoTemplateInput}
+            rosterInput={rosterInput}
+            onRosterInputChange={onRosterInputChange}
+            onImportRoster={onImportRoster}
+            onSyncAssignment={onSyncAssignment}
+            busy={busy}
+            className="h-full min-h-0 rounded-t-none border-t-0"
+          />
+        ) : null}
 
-      {tab === "overview" ? (
-        <AssignmentOverviewPanel
-          assignment={assignment}
-          repos={repos}
-          onOpenSummary={onOpenSummary}
-          onOpenQueue={() => onTabChange("queue")}
-          className="rounded-t-none border-t-0"
-        />
-      ) : null}
+        {tab === "settings" ? (
+          <AssignmentSettingsPanel
+            assignment={assignment}
+            repoTemplateInput={repoTemplateInput}
+            onRepoTemplateInputChange={onRepoTemplateInputChange}
+            deadlineInput={deadlineInput}
+            onDeadlineInputChange={onDeadlineInputChange}
+            onSave={onSaveAssignmentSettings}
+            onDelete={onDeleteAssignment}
+            busy={busy}
+            className="h-full min-h-0 rounded-t-none border-t-0"
+          />
+        ) : null}
+
+        {tab === "overview" ? (
+          <AssignmentOverviewPanel
+            assignment={assignment}
+            repos={repos}
+            onOpenSummary={onOpenSummary}
+            onOpenQueue={() => onTabChange("queue")}
+            className="h-full min-h-0 rounded-t-none border-t-0"
+          />
+        ) : null}
+      </div>
 
       <div className="rounded-none border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-600">
         Active assignments:{" "}
