@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowUpRight, FolderOpen, GitCompareArrows, MessageSquarePlus, Search, Send } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  ChevronDown,
+  ChevronRight,
+  FolderOpen,
+  GitCompareArrows,
+  MessageSquarePlus,
+  Search,
+  Send,
+} from "lucide-react";
 import { cn } from "../../../lib/utils";
 import type { DraftComment, StudentRepo } from "../../../types/ezta";
 import { Button } from "../../../components/ui/button";
@@ -11,7 +21,7 @@ import { useReviewWorkspace } from "../hooks/use-review-workspace";
 import { openExternalLink, openFileInEditor, openRepoInEditor } from "../../../lib/ezta";
 import { DraftCommentRow } from "./draft-comment-row";
 import { StructuredDiffPane } from "./structured-diff-pane";
-import { basename, groupChangedFiles, lineToneClass } from "../lib/diff-view";
+import { basename, dirname, groupChangedFiles, lineToneClass } from "../lib/diff-view";
 
 type ReviewWorkspaceProps = {
   selectedRepo: StudentRepo | null;
@@ -24,16 +34,8 @@ export function ReviewWorkspace({ selectedRepo, editorCommand, onBack }: ReviewW
   const [sourceSide, setSourceSide] = useState<"base" | "submission">("submission");
   const [editorError, setEditorError] = useState("");
   const [fileQuery, setFileQuery] = useState("");
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const review = useReviewWorkspace(selectedRepo, Boolean(selectedRepo));
-
-  if (!selectedRepo) {
-    return (
-      <div className="rounded-none border border-zinc-300 bg-white px-6 py-8 text-sm text-zinc-500">
-        Select a repository to enter review mode.
-      </div>
-    );
-  }
-
   const currentComments = review.draftComments.filter(
     (comment) => comment.filePath === review.selectedPath,
   );
@@ -62,6 +64,41 @@ export function ReviewWorkspace({ selectedRepo, editorCommand, onBack }: ReviewW
     });
   }, [fileQuery, review.changedFiles]);
   const groupedFiles = useMemo(() => groupChangedFiles(visibleFiles), [visibleFiles]);
+  const forceExpanded = fileQuery.trim().length > 0;
+
+  useEffect(() => {
+    if (!review.selectedPath) {
+      return;
+    }
+    const group = dirname(review.selectedPath);
+    setCollapsedGroups((current) => {
+      const next = new Set(current);
+      if (next.delete(group)) {
+        return next;
+      }
+      return current;
+    });
+  }, [review.selectedPath]);
+
+  function toggleGroup(label: string) {
+    setCollapsedGroups((current) => {
+      const next = new Set(current);
+      if (next.has(label)) {
+        next.delete(label);
+      } else {
+        next.add(label);
+      }
+      return next;
+    });
+  }
+
+  if (!selectedRepo) {
+    return (
+      <div className="rounded-none border border-zinc-300 bg-white px-6 py-8 text-sm text-zinc-500">
+        Select a repository to enter review mode.
+      </div>
+    );
+  }
 
   return (
     <div className="grid h-[calc(100vh-8rem)] min-h-0 gap-4 xl:grid-cols-[280px_minmax(0,1.3fr)_380px]">
@@ -74,9 +111,9 @@ export function ReviewWorkspace({ selectedRepo, editorCommand, onBack }: ReviewW
             Back
           </Button>
         }
-        className="min-h-0 self-start max-h-[calc(100vh-8rem)]"
+        className="h-full min-h-0"
       >
-        <div className="grid min-h-0 flex-1 grid-rows-[auto_1fr] bg-white">
+        <div className="grid h-full min-h-0 flex-1 grid-rows-[auto_1fr] bg-white">
           <div className="border-b border-zinc-200 p-2">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
@@ -89,34 +126,49 @@ export function ReviewWorkspace({ selectedRepo, editorCommand, onBack }: ReviewW
             </div>
           </div>
           <div className="min-h-0 overflow-y-auto bg-white p-2">
-            {groupedFiles.map((group) => (
-              <div key={group.label} className="mb-3">
-                <div className="mb-1 border-b border-zinc-200 px-1 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                  {group.label}
+            {groupedFiles.map((group) => {
+              const isCollapsed = !forceExpanded && collapsedGroups.has(group.label);
+
+              return (
+                <div key={group.label} className="mb-3">
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(group.label)}
+                    className="mb-1 flex w-full items-center gap-1 border-b border-zinc-200 px-1 pb-1 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500 hover:bg-zinc-50"
+                  >
+                    {isCollapsed ? (
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                    ) : (
+                      <ChevronDown className="h-3.5 w-3.5 shrink-0" />
+                    )}
+                    <span className="truncate">{group.label}</span>
+                  </button>
+                  {!isCollapsed ? (
+                    <div className="space-y-1">
+                      {group.files.map((file) => (
+                        <button
+                          key={file.path}
+                          type="button"
+                          onClick={() => review.setSelectedPath(file.path)}
+                          className={`w-full rounded-none border px-3 py-2 text-left ${
+                            review.selectedPath === file.path
+                              ? "border-zinc-900 bg-zinc-900 text-white"
+                              : "border-zinc-200 bg-white hover:border-zinc-400"
+                          }`}
+                        >
+                          <div className="truncate text-sm font-medium">{basename(file.path)}</div>
+                          <div className="truncate text-[11px] opacity-70">{file.path}</div>
+                          <div className="truncate text-[11px] opacity-70">
+                            {file.status}
+                            {file.previousPath ? ` from ${file.previousPath}` : ""}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
-                <div className="space-y-1">
-                  {group.files.map((file) => (
-                    <button
-                      key={file.path}
-                      type="button"
-                      onClick={() => review.setSelectedPath(file.path)}
-                      className={`w-full rounded-none border px-3 py-2 text-left ${
-                        review.selectedPath === file.path
-                          ? "border-zinc-900 bg-zinc-900 text-white"
-                          : "border-zinc-200 bg-white hover:border-zinc-400"
-                      }`}
-                    >
-                      <div className="truncate text-sm font-medium">{basename(file.path)}</div>
-                      <div className="truncate text-[11px] opacity-70">{file.path}</div>
-                      <div className="truncate text-[11px] opacity-70">
-                        {file.status}
-                        {file.previousPath ? ` from ${file.previousPath}` : ""}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {visibleFiles.length === 0 ? (
               <div className="border border-dashed border-zinc-300 px-3 py-4 text-sm text-zinc-500">
                 No changed files match the current search.
