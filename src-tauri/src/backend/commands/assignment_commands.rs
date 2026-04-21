@@ -36,6 +36,17 @@ fn normalize_submission_kind(value: Option<String>) -> AppResult<String> {
     }
 }
 
+fn validate_assignment_repo_template(assignment: &Assignment) -> AppResult<()> {
+    if assignment.submission_kind == "group"
+        && !assignment.repo_template.contains("{group_name}")
+    {
+        return Err(
+            "group assignments require the repo template to include {group_name}".to_string(),
+        );
+    }
+    Ok(())
+}
+
 pub(crate) fn sync_assignment_repos_inner(ctx: &AppContext, assignment_id: i64) -> AppResult<SyncResult> {
     let conn = open_conn(ctx)?;
     let repos = list_submissions_inner(&conn, assignment_id)?;
@@ -449,17 +460,31 @@ pub fn import_classroom_roster(
 ) -> AppResult<ImportRosterResult> {
     with_db(&state, |conn| {
     let assignment = fetch_assignment(conn, input.assignment_id)?;
+    validate_assignment_repo_template(&assignment)?;
     let now = now_ts();
     let mut imported_count = 0usize;
     let mut skipped_count = 0usize;
     let mut skipped_missing_identity = 0usize;
     let mut skipped_empty_repo_name = 0usize;
+    let mut skipped_missing_group_name = 0usize;
     let rows = parse_classroom_roster_rows(&input.csv_content)?;
 
     for row in rows {
         if row.github_username.trim().is_empty() || row.identifier.trim().is_empty() {
             skipped_count += 1;
             skipped_missing_identity += 1;
+            continue;
+        }
+        if assignment.submission_kind == "group"
+            && row
+                .group_name
+                .as_deref()
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .is_none()
+        {
+            skipped_count += 1;
+            skipped_missing_group_name += 1;
             continue;
         }
         if !should_include_roster_row(&assignment, &row) {
@@ -517,6 +542,7 @@ pub fn import_classroom_roster(
             )
             VALUES (?1, ?2, ?3, ?4, 'main', ?5, 'not_started', '', ?6)
             ON CONFLICT(assignment_id, repo_owner, repo_name) DO UPDATE SET
+                default_branch = excluded.default_branch,
                 repo_url = excluded.repo_url,
                 local_path = excluded.local_path,
                 updated_at = excluded.updated_at",
@@ -563,6 +589,12 @@ pub fn import_classroom_roster(
             reasons.push(format!(
                 "{} row(s) produced an empty repo name from the repo template",
                 skipped_empty_repo_name
+            ));
+        }
+        if skipped_missing_group_name > 0 {
+            reasons.push(format!(
+                "{} row(s) were missing group_name for a group assignment",
+                skipped_missing_group_name
             ));
         }
         if reasons.is_empty() {
