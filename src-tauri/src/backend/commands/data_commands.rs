@@ -95,6 +95,7 @@ pub fn export_local_data(state: tauri::State<'_, AppState>) -> AppResult<LocalDa
             values.push(SnapshotDraftComment {
                 id: comment.id,
                 student_repo_id: comment.student_repo_id,
+                submission_id: comment.submission_id,
                 file_path: comment.file_path,
                 start_line: comment.start_line,
                 line_number: comment.line_number,
@@ -232,12 +233,13 @@ pub fn import_local_data(
             .ok_or_else(|| format!("backup referenced missing student repo {}", comment.student_repo_id))?;
         tx.execute(
             "INSERT INTO draft_comments (
-                student_repo_id, file_path, start_line, line_number, side, body, code_context,
+                student_repo_id, submission_id, file_path, start_line, line_number, side, body, code_context,
                 publish_status, github_review_id, github_review_url, github_comment_id, github_comment_url,
                 last_error, published_at, created_at, updated_at
-            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
             params![
                 mapped_student_repo_id,
+                comment.submission_id.or(Some(mapped_student_repo_id)),
                 comment.file_path,
                 comment.start_line,
                 comment.line_number,

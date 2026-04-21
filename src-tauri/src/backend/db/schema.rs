@@ -139,5 +139,69 @@ pub fn init_db(conn: &Connection) -> AppResult<()> {
     let _ = conn.execute("ALTER TABLE draft_comments ADD COLUMN github_comment_url TEXT", []);
     let _ = conn.execute("ALTER TABLE draft_comments ADD COLUMN last_error TEXT", []);
     let _ = conn.execute("ALTER TABLE draft_comments ADD COLUMN published_at INTEGER", []);
+    let _ = conn.execute("ALTER TABLE draft_comments ADD COLUMN submission_id INTEGER", []);
+
+    conn.execute_batch(
+        "
+        INSERT INTO submissions (
+            id, assignment_id, repo_owner, repo_name, repo_url, default_branch, local_path,
+            review_status, notes, pr_url, pr_number, last_error, base_sha, submission_sha,
+            base_label, submission_label, base_branch_name, submission_branch_name,
+            last_prepared_at, updated_at
+        )
+        SELECT
+            student_repos.id,
+            student_repos.assignment_id,
+            student_repos.repo_owner,
+            student_repos.repo_name,
+            student_repos.repo_url,
+            student_repos.default_branch,
+            student_repos.local_path,
+            student_repos.review_status,
+            student_repos.notes,
+            student_repos.pr_url,
+            student_repos.pr_number,
+            student_repos.last_error,
+            student_repos.base_sha,
+            student_repos.submission_sha,
+            student_repos.base_label,
+            student_repos.submission_label,
+            student_repos.base_branch_name,
+            student_repos.submission_branch_name,
+            student_repos.last_prepared_at,
+            student_repos.updated_at
+        FROM student_repos
+        WHERE NOT EXISTS (
+            SELECT 1 FROM submissions WHERE submissions.id = student_repos.id
+        );
+
+        INSERT INTO submission_members (
+            submission_id, student_key, student_name, github_username, github_id, group_name, updated_at
+        )
+        SELECT
+            student_repos.id,
+            student_repos.student_key,
+            student_repos.student_name,
+            student_repos.github_username,
+            student_repos.github_id,
+            student_repos.roster_group_name,
+            student_repos.updated_at
+        FROM student_repos
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM submission_members
+            WHERE submission_members.submission_id = student_repos.id
+              AND submission_members.student_key = student_repos.student_key
+        );
+
+        UPDATE draft_comments
+        SET submission_id = student_repo_id
+        WHERE submission_id IS NULL
+          AND EXISTS (
+              SELECT 1 FROM submissions WHERE submissions.id = draft_comments.student_repo_id
+          );
+        ",
+    )
+    .map_err(|err| err.to_string())?;
     Ok(())
 }

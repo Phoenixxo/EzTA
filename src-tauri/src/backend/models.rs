@@ -128,6 +128,7 @@ pub struct ReviewFileData {
 pub struct DraftComment {
     pub id: i64,
     pub student_repo_id: i64,
+    pub submission_id: Option<i64>,
     pub file_path: String,
     pub start_line: i64,
     pub line_number: i64,
@@ -606,6 +607,8 @@ pub struct SnapshotStudentRepo {
 pub struct SnapshotDraftComment {
     pub id: i64,
     pub student_repo_id: i64,
+    #[serde(default)]
+    pub submission_id: Option<i64>,
     pub file_path: String,
     pub start_line: i64,
     pub line_number: i64,

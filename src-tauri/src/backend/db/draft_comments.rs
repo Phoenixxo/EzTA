@@ -5,6 +5,7 @@ pub fn map_draft_comment(row: &rusqlite::Row<'_>) -> rusqlite::Result<DraftComme
     Ok(DraftComment {
         id: row.get("id")?,
         student_repo_id: row.get("student_repo_id")?,
+        submission_id: row.get::<_, Option<i64>>("submission_id")?,
         file_path: row.get("file_path")?,
         start_line: row
             .get::<_, Option<i64>>("start_line")?

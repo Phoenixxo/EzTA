@@ -482,11 +482,12 @@ pub fn create_draft_comment(
     with_db(&state, |conn| {
         conn.execute(
             "INSERT INTO draft_comments (
-                student_repo_id, file_path, start_line, line_number, side, body, code_context,
+                student_repo_id, submission_id, file_path, start_line, line_number, side, body, code_context,
                 publish_status, github_comment_id, github_comment_url, last_error, published_at, created_at, updated_at
              )
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'draft', NULL, NULL, NULL, NULL, ?8, ?9)",
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 'draft', NULL, NULL, NULL, NULL, ?9, ?10)",
             params![
+                input.student_repo_id,
                 input.student_repo_id,
                 input.file_path,
                 input.start_line,
