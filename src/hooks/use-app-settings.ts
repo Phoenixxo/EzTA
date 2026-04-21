@@ -10,6 +10,7 @@ import {
   launchGithubAuth,
 } from "../lib/ezta";
 import {
+  clearVersionSensitiveFrontendState,
   consumeFrontendStateResetNotice,
   readStoredEditorPreference,
   syncEditorPreferenceFromStorageEvent,
@@ -33,6 +34,7 @@ export function useAppSettings() {
     useState<GithubConnectionStatus | null>(null);
   const [settingsBusy, setSettingsBusy] = useState(false);
   const [githubAuthMessage, setGithubAuthMessage] = useState("");
+  const [upgradeRecoveryMessage, setUpgradeRecoveryMessage] = useState("");
   const [dataSafetyMessage, setDataSafetyMessage] = useState("");
 
   const resolvedEditorApplication = useMemo(
@@ -49,7 +51,7 @@ export function useAppSettings() {
     setEditorApplicationPathInput(storedPreference.applicationPath);
     const resetNotice = consumeFrontendStateResetNotice();
     if (resetNotice) {
-      setDataSafetyMessage(resetNotice);
+      setUpgradeRecoveryMessage(resetNotice);
     }
   }, []);
 
@@ -122,6 +124,7 @@ export function useAppSettings() {
   async function checkAppUpdate() {
     setSettingsBusy(true);
     setAppUpdateMessage("");
+    setUpgradeRecoveryMessage("");
     try {
       const result = await checkForAppUpdate();
       setAppUpdateResult(result);
@@ -140,13 +143,23 @@ export function useAppSettings() {
 
   async function runAppUpdateInstall() {
     setSettingsBusy(true);
-    setAppUpdateMessage("Downloading and installing the update. EzTA will restart when it finishes.");
+    setAppUpdateMessage(
+      "Downloading and installing the update. EzTA will restart when it finishes.",
+    );
+    setUpgradeRecoveryMessage(
+      "If saved UI state from the previous version is incompatible, EzTA will clear it automatically after restart while preserving assignment data.",
+    );
     try {
       await installAppUpdate();
     } catch (err) {
       setAppUpdateMessage(String(err));
       setSettingsBusy(false);
     }
+  }
+
+  function resetSavedUiState() {
+    clearVersionSensitiveFrontendState();
+    window.location.reload();
   }
 
   async function chooseEditorApplication() {
@@ -243,6 +256,7 @@ export function useAppSettings() {
     appUpdaterOverview,
     appUpdateResult,
     appUpdateMessage,
+    upgradeRecoveryMessage,
     resolvedEditorApplication,
     chooseEditorApplication,
     githubConnectionStatus,
@@ -253,6 +267,7 @@ export function useAppSettings() {
     startGithubAuth,
     checkAppUpdate,
     runAppUpdateInstall,
+    resetSavedUiState,
     exportAppData,
     importAppData,
   };

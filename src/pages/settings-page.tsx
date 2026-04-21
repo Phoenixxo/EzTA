@@ -21,11 +21,13 @@ type SettingsPageProps = {
   updaterOverview: AppUpdaterOverview | null;
   appUpdateResult: AppUpdateCheckResult | null;
   appUpdateMessage: string;
+  upgradeRecoveryMessage: string;
   githubConnectionStatus: GithubConnectionStatus | null;
   githubAuthMessage: string;
   dataSafetyMessage: string;
   onCheckAppUpdate: () => void;
   onInstallAppUpdate: () => void;
+  onResetSavedUiState: () => void;
   onStartGithubAuth: () => void;
   onRefreshGithubConnectionStatus: () => void;
   onExportAppData: () => void;
@@ -43,11 +45,13 @@ export function SettingsPage({
   updaterOverview,
   appUpdateResult,
   appUpdateMessage,
+  upgradeRecoveryMessage,
   githubConnectionStatus,
   githubAuthMessage,
   dataSafetyMessage,
   onCheckAppUpdate,
   onInstallAppUpdate,
+  onResetSavedUiState,
   onStartGithubAuth,
   onRefreshGithubConnectionStatus,
   onExportAppData,
@@ -161,8 +165,10 @@ export function SettingsPage({
                 <UpdateActions
                   busy={busy}
                   result={appUpdateResult}
+                  recoveryMessage={upgradeRecoveryMessage}
                   onCheck={onCheckAppUpdate}
                   onInstall={onInstallAppUpdate}
+                  onResetSavedUiState={onResetSavedUiState}
                 />
               }
             />
@@ -265,13 +271,17 @@ export function SettingsPage({
 function UpdateActions({
   busy,
   result,
+  recoveryMessage,
   onCheck,
   onInstall,
+  onResetSavedUiState,
 }: {
   busy: boolean;
   result: AppUpdateCheckResult | null;
+  recoveryMessage: string;
   onCheck: () => void;
   onInstall: () => void;
+  onResetSavedUiState: () => void;
 }) {
   return (
     <div className="space-y-3">
@@ -288,7 +298,18 @@ function UpdateActions({
         >
           Install update
         </Button>
+        <Button type="button" size="sm" variant="outline" onClick={onResetSavedUiState} disabled={busy}>
+          Reset saved UI state
+        </Button>
       </div>
+      <div className="border border-zinc-300 bg-zinc-50 px-3 py-2 text-xs leading-5 text-zinc-700">
+        Upgrades may clear saved route and queue UI state after restart if the older version left incompatible browser data behind. Assignment data and review metadata are preserved.
+      </div>
+      {recoveryMessage ? (
+        <div className="border border-amber-700 bg-amber-100 px-3 py-2 text-sm text-amber-950">
+          {recoveryMessage}
+        </div>
+      ) : null}
       {result?.available ? (
         <div className="border border-emerald-700 bg-emerald-100 px-3 py-2 text-sm text-emerald-950">
           Update {result.version ?? "available"}

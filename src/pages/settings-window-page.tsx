@@ -16,11 +16,13 @@ export function SettingsWindowPage() {
         updaterOverview={settings.appUpdaterOverview}
         appUpdateResult={settings.appUpdateResult}
         appUpdateMessage={settings.appUpdateMessage}
+        upgradeRecoveryMessage={settings.upgradeRecoveryMessage}
         githubConnectionStatus={settings.githubConnectionStatus}
         githubAuthMessage={settings.githubAuthMessage}
         dataSafetyMessage={settings.dataSafetyMessage}
         onCheckAppUpdate={() => void settings.checkAppUpdate()}
         onInstallAppUpdate={() => void settings.runAppUpdateInstall()}
+        onResetSavedUiState={settings.resetSavedUiState}
         onStartGithubAuth={() => void settings.startGithubAuth()}
         onRefreshGithubConnectionStatus={() => void settings.refreshGithubConnectionStatus()}
         onExportAppData={() => void settings.exportAppData()}
