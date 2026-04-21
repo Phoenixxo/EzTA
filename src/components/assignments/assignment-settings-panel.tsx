@@ -15,6 +15,8 @@ type AssignmentSettingsPanelProps = {
   onRepoTemplateInputChange: (value: string) => void;
   deadlineInput: string;
   onDeadlineInputChange: (value: string) => void;
+  submissionKindInput: "individual" | "group";
+  onSubmissionKindInputChange: (value: "individual" | "group") => void;
   onSave: () => void;
   onDelete: (deleteLocalWorkspace?: boolean) => Promise<void> | void;
   busy: boolean;
@@ -27,6 +29,8 @@ export function AssignmentSettingsPanel({
   onRepoTemplateInputChange,
   deadlineInput,
   onDeadlineInputChange,
+  submissionKindInput,
+  onSubmissionKindInputChange,
   onSave,
   onDelete,
   busy,
@@ -44,6 +48,17 @@ export function AssignmentSettingsPanel({
       className={className}
     >
       <div className="space-y-3 bg-white p-4">
+        <select
+          value={submissionKindInput}
+          onChange={(event) =>
+            onSubmissionKindInputChange(event.currentTarget.value as "individual" | "group")
+          }
+          className="h-10 w-full rounded-none border border-zinc-300 bg-white px-3 text-sm"
+          disabled={!assignment}
+        >
+          <option value="individual">Individual assignment</option>
+          <option value="group">Group assignment</option>
+        </select>
         <Input
           value={repoTemplateInput}
           onChange={(event) => onRepoTemplateInputChange(event.currentTarget.value)}

@@ -11,6 +11,7 @@ pub fn init_db(conn: &Connection) -> AppResult<()> {
             github_org TEXT NOT NULL,
             repo_prefix TEXT NOT NULL DEFAULT '',
             assignment_group TEXT,
+            submission_kind TEXT NOT NULL DEFAULT 'individual',
             repo_template TEXT NOT NULL DEFAULT '{assignment_name}-{github_username}',
             deadline_at TEXT,
             workspace_path TEXT NOT NULL,
@@ -80,6 +81,10 @@ pub fn init_db(conn: &Connection) -> AppResult<()> {
 
     let _ = conn.execute("ALTER TABLE assignments ADD COLUMN deadline_at TEXT", []);
     let _ = conn.execute("ALTER TABLE assignments ADD COLUMN assignment_group TEXT", []);
+    let _ = conn.execute(
+        "ALTER TABLE assignments ADD COLUMN submission_kind TEXT NOT NULL DEFAULT 'individual'",
+        [],
+    );
     let _ = conn.execute(
         "ALTER TABLE assignments ADD COLUMN repo_template TEXT NOT NULL DEFAULT '{assignment_name}-{github_username}'",
         [],

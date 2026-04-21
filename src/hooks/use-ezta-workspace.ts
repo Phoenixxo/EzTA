@@ -49,6 +49,9 @@ export function useEztaWorkspace() {
   const [baseInput, setBaseInput] = useState("");
   const [submissionInput, setSubmissionInput] = useState("");
   const [deadlineInput, setDeadlineInput] = useState("");
+  const [submissionKindInput, setSubmissionKindInput] = useState<"individual" | "group">(
+    "individual",
+  );
   const [repoTemplateInput, setRepoTemplateInput] = useState("");
   const [editorAppInput, setEditorAppInput] = useState<EditorPreference>("system");
   const [editorApplicationPathInput, setEditorApplicationPathInput] = useState("");
@@ -147,6 +150,7 @@ export function useEztaWorkspace() {
 
   useEffect(() => {
     setDeadlineInput(utcIsoToLocalDateTimeInput(selectedAssignment?.deadlineAt ?? null));
+    setSubmissionKindInput(selectedAssignment?.submissionKind ?? "individual");
     setRepoTemplateInput(selectedAssignment?.repoTemplate ?? "");
   }, [selectedAssignment]);
 
@@ -308,6 +312,7 @@ export function useEztaWorkspace() {
       const updated = await updateAssignment({
         assignmentId: selectedAssignmentId,
         deadlineAt: deadlineInput,
+        submissionKind: submissionKindInput,
         repoTemplate: repoTemplateInput,
       });
       setAssignments((current) =>
@@ -560,6 +565,8 @@ export function useEztaWorkspace() {
     setSubmissionInput,
     deadlineInput,
     setDeadlineInput,
+    submissionKindInput,
+    setSubmissionKindInput,
     repoTemplateInput,
     setRepoTemplateInput,
     resolvedEditorApplication,

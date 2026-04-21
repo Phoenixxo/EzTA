@@ -32,6 +32,7 @@ pub fn export_local_data(state: tauri::State<'_, AppState>) -> AppResult<LocalDa
                 github_org: assignment.github_org,
                 repo_prefix: assignment.repo_prefix,
                 assignment_group: assignment.assignment_group,
+                submission_kind: assignment.submission_kind,
                 repo_template: assignment.repo_template,
                 deadline_at: assignment.deadline_at,
                 created_at: assignment.created_at,
@@ -152,14 +153,15 @@ pub fn import_local_data(
         fs::create_dir_all(&workspace_path).map_err(|err| err.to_string())?;
         tx.execute(
             "INSERT INTO assignments (
-                name, github_org, repo_prefix, assignment_group, repo_template, deadline_at,
+                name, github_org, repo_prefix, assignment_group, submission_kind, repo_template, deadline_at,
                 workspace_path, created_at, updated_at
-             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
             params![
                 assignment.name.trim(),
                 assignment.github_org.trim(),
                 assignment.repo_prefix.trim(),
                 assignment.assignment_group,
+                assignment.submission_kind,
                 assignment.repo_template,
                 assignment.deadline_at,
                 workspace_path.to_string_lossy().to_string(),

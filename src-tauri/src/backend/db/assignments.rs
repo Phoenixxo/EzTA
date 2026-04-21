@@ -13,6 +13,7 @@ pub fn map_assignment(row: &rusqlite::Row<'_>) -> rusqlite::Result<Assignment> {
         github_org: row.get("github_org")?,
         repo_prefix: row.get("repo_prefix")?,
         assignment_group: row.get("assignment_group")?,
+        submission_kind: row.get("submission_kind")?,
         repo_template: row.get("repo_template")?,
         deadline_at: row.get("deadline_at")?,
         workspace_path: row.get("workspace_path")?,

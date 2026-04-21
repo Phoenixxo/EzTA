@@ -1,6 +1,10 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+fn default_submission_kind() -> String {
+    "individual".to_string()
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Assignment {
@@ -9,6 +13,7 @@ pub struct Assignment {
     pub github_org: String,
     pub repo_prefix: String,
     pub assignment_group: Option<String>,
+    pub submission_kind: String,
     pub repo_template: String,
     pub deadline_at: Option<String>,
     pub workspace_path: String,
@@ -199,6 +204,7 @@ pub struct CreateAssignmentInput {
     pub github_org: String,
     pub repo_prefix: String,
     pub assignment_group: Option<String>,
+    pub submission_kind: Option<String>,
     pub repo_template: Option<String>,
     pub deadline_at: Option<String>,
 }
@@ -208,6 +214,7 @@ pub struct CreateAssignmentInput {
 pub struct UpdateAssignmentInput {
     pub assignment_id: i64,
     pub deadline_at: Option<String>,
+    pub submission_kind: Option<String>,
     pub repo_template: Option<String>,
 }
 
@@ -517,6 +524,8 @@ pub struct SnapshotAssignment {
     pub github_org: String,
     pub repo_prefix: String,
     pub assignment_group: Option<String>,
+    #[serde(default = "default_submission_kind")]
+    pub submission_kind: String,
     pub repo_template: String,
     pub deadline_at: Option<String>,
     pub created_at: i64,

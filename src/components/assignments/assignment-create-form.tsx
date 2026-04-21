@@ -75,6 +75,17 @@ export function AssignmentCreateForm({
           placeholder="Optional repo prefix"
           className="h-10 rounded-none"
         />
+        <select
+          value={form.submissionKind}
+          onChange={(event) => {
+            const value = event.currentTarget.value as "individual" | "group";
+            setForm((current) => ({ ...current, submissionKind: value }));
+          }}
+          className="h-10 rounded-none border border-zinc-300 bg-white px-3 text-sm"
+        >
+          <option value="individual">Individual assignment</option>
+          <option value="group">Group assignment</option>
+        </select>
         <Input
           value={form.repoTemplate}
           onChange={(event) => {

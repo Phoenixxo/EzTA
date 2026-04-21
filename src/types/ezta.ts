@@ -4,12 +4,15 @@ export type Assignment = {
   githubOrg: string;
   repoPrefix: string;
   assignmentGroup: string | null;
+  submissionKind: SubmissionKind;
   repoTemplate: string;
   deadlineAt: string | null;
   workspacePath: string;
   createdAt: number;
   updatedAt: number;
 };
+
+export type SubmissionKind = "individual" | "group";
 
 export type EditorPreference = "system" | "application";
 
@@ -189,6 +192,7 @@ export type AssignmentForm = {
   name: string;
   githubOrg: string;
   repoPrefix: string;
+  submissionKind: SubmissionKind;
   repoTemplate: string;
   deadlineAt: string;
 };
@@ -205,6 +209,7 @@ export const emptyAssignmentForm: AssignmentForm = {
   name: "",
   githubOrg: "",
   repoPrefix: "",
+  submissionKind: "individual",
   repoTemplate: "{assignment_name}-{github_username}",
   deadlineAt: "",
 };

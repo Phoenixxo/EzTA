@@ -87,6 +87,7 @@ export async function createAssignment(input: AssignmentForm) {
     input: {
       ...input,
       assignmentGroup: null,
+      submissionKind: input.submissionKind,
       repoTemplate: input.repoTemplate || null,
       deadlineAt: localDateTimeInputToUtcIso(input.deadlineAt),
     },
@@ -96,12 +97,14 @@ export async function createAssignment(input: AssignmentForm) {
 export async function updateAssignment(input: {
   assignmentId: number;
   deadlineAt: string;
+  submissionKind: "individual" | "group";
   repoTemplate?: string;
 }) {
   return invoke<Assignment>("update_assignment", {
     input: {
       assignmentId: input.assignmentId,
       deadlineAt: localDateTimeInputToUtcIso(input.deadlineAt),
+      submissionKind: input.submissionKind,
       repoTemplate: input.repoTemplate?.trim() ? input.repoTemplate.trim() : null,
     },
   });

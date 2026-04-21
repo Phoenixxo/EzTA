@@ -76,6 +76,9 @@ export function AssignmentListPanel({
             <div className="truncate text-xs opacity-70">
               {assignment.githubOrg}
             </div>
+            <div className="truncate text-xs opacity-70">
+              {assignment.submissionKind === "group" ? "Group assignment" : "Individual assignment"}
+            </div>
             <div className="mt-3 flex gap-2">
               <Button
                 type="button"

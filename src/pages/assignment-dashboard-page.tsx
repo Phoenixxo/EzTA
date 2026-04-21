@@ -42,6 +42,8 @@ type AssignmentDashboardPageProps = {
   onRepoTemplateInputChange: (value: string) => void;
   deadlineInput: string;
   onDeadlineInputChange: (value: string) => void;
+  submissionKindInput: "individual" | "group";
+  onSubmissionKindInputChange: (value: "individual" | "group") => void;
   onSaveAssignmentSettings: () => void;
   onDeleteAssignment: (deleteLocalWorkspace?: boolean) => Promise<void> | void;
   rosterInput: string;
@@ -81,6 +83,8 @@ export function AssignmentDashboardPage({
   onRepoTemplateInputChange,
   deadlineInput,
   onDeadlineInputChange,
+  submissionKindInput,
+  onSubmissionKindInputChange,
   onSaveAssignmentSettings,
   onDeleteAssignment,
   rosterInput,
@@ -148,6 +152,8 @@ export function AssignmentDashboardPage({
             onRepoTemplateInputChange={onRepoTemplateInputChange}
             deadlineInput={deadlineInput}
             onDeadlineInputChange={onDeadlineInputChange}
+            submissionKindInput={submissionKindInput}
+            onSubmissionKindInputChange={onSubmissionKindInputChange}
             onSave={onSaveAssignmentSettings}
             onDelete={onDeleteAssignment}
             busy={busy}

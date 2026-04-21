@@ -236,6 +236,8 @@ export function WorkspacePage() {
             onRepoTemplateInputChange={workspace.setRepoTemplateInput}
             deadlineInput={workspace.deadlineInput}
             onDeadlineInputChange={workspace.setDeadlineInput}
+            submissionKindInput={workspace.submissionKindInput}
+            onSubmissionKindInputChange={workspace.setSubmissionKindInput}
             onSaveAssignmentSettings={workspace.handleUpdateAssignmentDeadline}
             onDeleteAssignment={async (deleteLocalWorkspace) => {
               await workspace.handleDeleteAssignment(deleteLocalWorkspace);

@@ -132,6 +132,7 @@ export function AssignmentDiscoveryPanel({
       name: group.groupKey,
       githubOrg: group.githubOrg,
       repoPrefix: group.groupKey,
+      submissionKind: "individual",
       repoTemplate: `${group.groupKey}-{github_username}`,
       deadlineAt: "",
     });

@@ -23,6 +23,19 @@ use super::super::AppResult;
 use super::support::parse_classroom_roster_rows;
 use super::support::with_db;
 
+fn normalize_submission_kind(value: Option<String>) -> AppResult<String> {
+    match value
+        .unwrap_or_else(|| "individual".to_string())
+        .trim()
+        .to_ascii_lowercase()
+        .as_str()
+    {
+        "individual" => Ok("individual".to_string()),
+        "group" => Ok("group".to_string()),
+        other => Err(format!("unsupported submission kind '{}'", other)),
+    }
+}
+
 pub(crate) fn sync_assignment_repos_inner(ctx: &AppContext, assignment_id: i64) -> AppResult<SyncResult> {
     let conn = open_conn(ctx)?;
     let repos = list_student_repos_inner(&conn, assignment_id)?;
@@ -211,6 +224,7 @@ pub fn create_assignment(
 ) -> AppResult<Assignment> {
     let now = now_ts();
     let deadline_at = normalize_deadline(input.deadline_at)?;
+    let submission_kind = normalize_submission_kind(input.submission_kind)?;
     let repo_template = input
         .repo_template
         .unwrap_or_else(|| "{assignment_name}-{github_username}".to_string());
@@ -218,13 +232,14 @@ pub fn create_assignment(
     fs::create_dir_all(&workspace_path).map_err(|err| err.to_string())?;
     with_db(&state, |conn| {
         conn.execute(
-            "INSERT INTO assignments (name, github_org, repo_prefix, assignment_group, repo_template, deadline_at, workspace_path, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            "INSERT INTO assignments (name, github_org, repo_prefix, assignment_group, submission_kind, repo_template, deadline_at, workspace_path, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
             params![
                 input.name.trim(),
                 input.github_org.trim(),
                 input.repo_prefix.trim(),
                 input.assignment_group.as_ref().map(|value| value.trim().to_string()),
+                submission_kind,
                 repo_template.trim(),
                 deadline_at,
                 workspace_path.to_string_lossy().to_string(),
@@ -243,6 +258,10 @@ pub fn update_assignment(
     state: tauri::State<'_, AppState>,
 ) -> AppResult<Assignment> {
     let deadline_at = normalize_deadline(input.deadline_at)?;
+    let submission_kind = match input.submission_kind {
+        Some(value) => Some(normalize_submission_kind(Some(value))?),
+        None => None,
+    };
     let repo_template = input
         .repo_template
         .map(|value| value.trim().to_string())
@@ -251,10 +270,11 @@ pub fn update_assignment(
         conn.execute(
             "UPDATE assignments
              SET deadline_at = ?1,
-                 repo_template = COALESCE(?2, repo_template),
-                 updated_at = ?3
-             WHERE id = ?4",
-            params![deadline_at, repo_template, now_ts(), input.assignment_id],
+                 submission_kind = COALESCE(?2, submission_kind),
+                 repo_template = COALESCE(?3, repo_template),
+                 updated_at = ?4
+             WHERE id = ?5",
+            params![deadline_at, submission_kind, repo_template, now_ts(), input.assignment_id],
         )
         .map_err(|err| err.to_string())?;
         fetch_assignment(conn, input.assignment_id)
