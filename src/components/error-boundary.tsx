@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { clearVersionSensitiveFrontendState } from "../lib/ezta-storage";
 
 type ErrorBoundaryProps = {
   children: ReactNode;
@@ -13,6 +14,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   public state: ErrorBoundaryState = {
     hasError: false,
     errorMessage: "",
+  };
+
+  private handleResetUiState = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    clearVersionSensitiveFrontendState();
+    window.location.reload();
   };
 
   public static getDerivedStateFromError(error: Error): ErrorBoundaryState {
@@ -41,6 +50,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               Refresh the app to recover. If this keeps happening, send the exact field and key
               sequence that triggered it.
             </p>
+            <button
+              type="button"
+              onClick={this.handleResetUiState}
+              className="mt-4 rounded-none border border-red-400 bg-white px-4 py-2 text-sm text-red-900 hover:bg-red-100"
+            >
+              Reset saved UI state and reload
+            </button>
             <pre className="mt-4 overflow-x-auto rounded-none bg-white/80 p-3 text-xs text-red-900">
               {this.state.errorMessage || "Unknown runtime error"}
             </pre>
