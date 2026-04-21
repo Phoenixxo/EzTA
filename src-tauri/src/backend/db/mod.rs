@@ -19,6 +19,9 @@ pub use org_repo_index::{
 };
 pub use schema::init_db;
 pub use student_repos::{
-    assignment_repo_count, fetch_student_repo, list_student_repos_inner, map_student_repo,
+    map_student_repo,
+};
+pub use submissions::{
+    assignment_submission_count, fetch_submission, list_submissions_inner, upsert_submission_member,
 };
 pub use util::{normalize_deadline, now_ts, parse_rfc3339_utc, slugify};

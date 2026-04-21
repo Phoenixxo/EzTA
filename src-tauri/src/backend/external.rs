@@ -9,7 +9,7 @@ use std::process::{Command, Stdio};
 use super::db::parse_rfc3339_utc;
 use super::models::{
     Assignment, ClassroomRosterRow, GhAuthenticatedUser, GhExistingReview, GhPendingReview, GhPr,
-    GhPullRequestAuthor, GhPushEvent, PendingReviewComment, StudentRepo,
+    GhPullRequestAuthor, GhPushEvent, PendingReviewComment, Submission,
 };
 use super::AppResult;
 
@@ -118,7 +118,7 @@ pub fn run_json_command_with_json_input<T: DeserializeOwned>(
     }
 }
 
-pub fn ensure_local_repo(repo: &StudentRepo) -> AppResult<()> {
+pub fn ensure_local_repo(repo: &Submission) -> AppResult<()> {
     let local_path = PathBuf::from(&repo.local_path);
     if local_path.join(".git").exists() {
         run_command("git", &["fetch", "origin", "--prune"], Some(&local_path))?;
@@ -141,7 +141,7 @@ pub fn ensure_local_repo(repo: &StudentRepo) -> AppResult<()> {
     Ok(())
 }
 
-pub fn fetch_all_remote_heads(repo: &StudentRepo) -> AppResult<PathBuf> {
+pub fn fetch_all_remote_heads(repo: &Submission) -> AppResult<PathBuf> {
     ensure_local_repo(repo)?;
     let local_path = PathBuf::from(&repo.local_path);
     run_command(
@@ -157,7 +157,7 @@ pub fn fetch_all_remote_heads(repo: &StudentRepo) -> AppResult<PathBuf> {
     Ok(local_path)
 }
 
-pub fn require_local_repo(repo: &StudentRepo) -> AppResult<PathBuf> {
+pub fn require_local_repo(repo: &Submission) -> AppResult<PathBuf> {
     let local_path = PathBuf::from(&repo.local_path);
     if local_path.join(".git").exists() {
         return Ok(local_path);
@@ -174,7 +174,7 @@ pub fn commit_exists(repo_path: &Path, sha: &str) -> bool {
 }
 
 pub fn find_deadline_submission_from_push_events(
-    repo: &StudentRepo,
+    repo: &Submission,
     deadline_at: &str,
 ) -> AppResult<Option<(String, String)>> {
     let deadline = parse_rfc3339_utc(deadline_at)?;
@@ -259,7 +259,7 @@ pub fn launch_github_auth_flow() -> AppResult<()> {
     Err("unsupported platform for launching GitHub auth".to_string())
 }
 
-pub fn fetch_existing_pr(repo: &StudentRepo, base_branch: &str, head_branch: &str) -> AppResult<Option<GhPr>> {
+pub fn fetch_existing_pr(repo: &Submission, base_branch: &str, head_branch: &str) -> AppResult<Option<GhPr>> {
     let prs: Vec<GhPr> = run_json_command(
         "gh",
         &[
@@ -284,7 +284,7 @@ pub fn fetch_existing_pr(repo: &StudentRepo, base_branch: &str, head_branch: &st
 }
 
 pub fn create_pending_pr_review(
-    repo: &StudentRepo,
+    repo: &Submission,
     pr_number: i64,
     commit_id: &str,
     comments: &[PendingReviewComment],
@@ -338,7 +338,7 @@ pub fn create_pending_pr_review(
     )
 }
 
-fn list_current_user_pending_review_ids(repo: &StudentRepo, pr_number: i64) -> AppResult<Vec<i64>> {
+fn list_current_user_pending_review_ids(repo: &Submission, pr_number: i64) -> AppResult<Vec<i64>> {
     let current_user: GhAuthenticatedUser = run_json_command("gh", &["api", "user"], None)?;
     let reviews: Vec<GhExistingReview> = run_json_command(
         "gh",
@@ -371,7 +371,7 @@ fn list_current_user_pending_review_ids(repo: &StudentRepo, pr_number: i64) -> A
         .collect())
 }
 
-fn clear_stale_pending_pr_review(repo: &StudentRepo, pr_number: i64) -> AppResult<()> {
+fn clear_stale_pending_pr_review(repo: &Submission, pr_number: i64) -> AppResult<()> {
     for review_id in list_current_user_pending_review_ids(repo, pr_number)? {
         submit_pending_pr_review(
             repo,
@@ -385,7 +385,7 @@ fn clear_stale_pending_pr_review(repo: &StudentRepo, pr_number: i64) -> AppResul
     Ok(())
 }
 
-pub fn find_current_pending_pr_review_id(repo: &StudentRepo, pr_number: i64) -> AppResult<Option<i64>> {
+pub fn find_current_pending_pr_review_id(repo: &Submission, pr_number: i64) -> AppResult<Option<i64>> {
     Ok(list_current_user_pending_review_ids(repo, pr_number)?.into_iter().next())
 }
 
@@ -393,7 +393,7 @@ pub fn current_github_login() -> AppResult<String> {
     Ok(run_json_command::<GhAuthenticatedUser>("gh", &["api", "user"], None)?.login)
 }
 
-pub fn fetch_pr_author_login(repo: &StudentRepo, pr_number: i64) -> AppResult<Option<String>> {
+pub fn fetch_pr_author_login(repo: &Submission, pr_number: i64) -> AppResult<Option<String>> {
     let pr: GhPullRequestAuthor = run_json_command(
         "gh",
         &[
@@ -410,7 +410,7 @@ pub fn fetch_pr_author_login(repo: &StudentRepo, pr_number: i64) -> AppResult<Op
 }
 
 pub fn submit_pending_pr_review(
-    repo: &StudentRepo,
+    repo: &Submission,
     pr_number: i64,
     review_id: i64,
     event: &str,
@@ -444,7 +444,7 @@ pub fn submit_pending_pr_review(
 }
 
 pub fn discard_pending_pr_review(
-    repo: &StudentRepo,
+    repo: &Submission,
     pr_number: i64,
     review_id: i64,
 ) -> AppResult<()> {

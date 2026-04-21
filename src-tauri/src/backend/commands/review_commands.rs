@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::path::PathBuf;
 
-use super::super::db::{fetch_student_repo, map_draft_comment, now_ts, open_conn};
+use super::super::db::{fetch_submission, map_draft_comment, now_ts, open_conn};
 use super::super::external::{
     create_pending_pr_review, current_github_login, discard_pending_pr_review,
     fetch_pr_author_login, find_current_pending_pr_review_id, require_local_repo, run_command,
@@ -26,7 +26,7 @@ pub(crate) fn publish_draft_comments_inner(
     student_repo_id: i64,
 ) -> AppResult<PublishDraftCommentsResult> {
     let conn = open_conn(ctx)?;
-    let repo = fetch_student_repo(&conn, student_repo_id)?;
+    let repo = fetch_submission(&conn, student_repo_id)?;
     let pr_number = repo
         .pr_number
         .ok_or_else(|| "prepare the PR before publishing draft comments".to_string())?;
@@ -198,7 +198,7 @@ pub(crate) fn submit_pending_review_inner(
     input: SubmitPendingReviewInput,
 ) -> AppResult<SubmitPendingReviewResult> {
     let conn = open_conn(ctx)?;
-    let repo = fetch_student_repo(&conn, input.student_repo_id)?;
+    let repo = fetch_submission(&conn, input.student_repo_id)?;
     let pr_number = repo
         .pr_number
         .ok_or_else(|| "prepare the PR before submitting a review".to_string())?;
@@ -279,7 +279,7 @@ pub(crate) fn discard_pending_review_inner(
     student_repo_id: i64,
 ) -> AppResult<Vec<DraftComment>> {
     let conn = open_conn(ctx)?;
-    let repo = fetch_student_repo(&conn, student_repo_id)?;
+    let repo = fetch_submission(&conn, student_repo_id)?;
     let pr_number = repo
         .pr_number
         .ok_or_else(|| "prepare the PR before discarding a pending review".to_string())?;
@@ -322,7 +322,7 @@ pub fn list_changed_files(
     student_repo_id: i64,
     state: tauri::State<'_, AppState>,
 ) -> AppResult<Vec<ChangedFile>> {
-    let repo = with_db(&state, |conn| fetch_student_repo(conn, student_repo_id))?;
+    let repo = with_db(&state, |conn| fetch_submission(conn, student_repo_id))?;
     let repo_path = require_local_repo(&repo)?;
     let (base_sha, submission_sha) = require_review_shas(&repo)?;
     let output = run_command(
@@ -375,7 +375,7 @@ pub fn get_file_content(
     input: FileContentInput,
     state: tauri::State<'_, AppState>,
 ) -> AppResult<FileContentResult> {
-    let repo = with_db(&state, |conn| fetch_student_repo(conn, input.student_repo_id))?;
+    let repo = with_db(&state, |conn| fetch_submission(conn, input.student_repo_id))?;
     let repo_path = require_local_repo(&repo)?;
     let (base_sha, submission_sha) = require_review_shas(&repo)?;
     let target_sha = if input.side == "base" {
@@ -400,7 +400,7 @@ pub fn get_file_diff(
     input: FileDiffInput,
     state: tauri::State<'_, AppState>,
 ) -> AppResult<FileDiffResult> {
-    let repo = with_db(&state, |conn| fetch_student_repo(conn, input.student_repo_id))?;
+    let repo = with_db(&state, |conn| fetch_submission(conn, input.student_repo_id))?;
     let repo_path = require_local_repo(&repo)?;
     let (base_sha, submission_sha) = require_review_shas(&repo)?;
     let diff = run_command(
@@ -426,7 +426,7 @@ pub fn get_review_file_data(
     input: ReviewFileDataInput,
     state: tauri::State<'_, AppState>,
 ) -> AppResult<ReviewFileData> {
-    let repo = with_db(&state, |conn| fetch_student_repo(conn, input.student_repo_id))?;
+    let repo = with_db(&state, |conn| fetch_submission(conn, input.student_repo_id))?;
     let repo_path = require_local_repo(&repo)?;
     let (base_sha, submission_sha) = require_review_shas(&repo)?;
 

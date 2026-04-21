@@ -85,11 +85,14 @@ export type LocalDataSnapshot = {
   draftComments: unknown[];
 };
 
-export type StudentRepo = {
+export type Submission = {
   id: number;
   assignmentId: number;
   studentKey: string;
   studentName: string;
+  githubUsername: string | null;
+  githubId: string | null;
+  rosterGroupName: string | null;
   repoOwner: string;
   repoName: string;
   repoUrl: string;
@@ -108,29 +111,7 @@ export type StudentRepo = {
   submissionBranchName: string | null;
   lastPreparedAt: number | null;
   updatedAt: number;
-};
-
-export type Submission = {
-  id: number;
-  assignmentId: number;
-  repoOwner: string;
-  repoName: string;
-  repoUrl: string;
-  defaultBranch: string;
-  localPath: string;
-  reviewStatus: string;
-  notes: string;
-  prUrl: string | null;
-  prNumber: number | null;
-  lastError: string | null;
-  baseSha: string | null;
-  submissionSha: string | null;
-  baseLabel: string | null;
-  submissionLabel: string | null;
-  baseBranchName: string | null;
-  submissionBranchName: string | null;
-  lastPreparedAt: number | null;
-  updatedAt: number;
+  members: SubmissionMember[];
 };
 
 export type SubmissionMember = {
@@ -143,6 +124,8 @@ export type SubmissionMember = {
   groupName: string | null;
   updatedAt: number;
 };
+
+export type StudentRepo = Submission;
 
 export type ChangedFile = {
   path: string;

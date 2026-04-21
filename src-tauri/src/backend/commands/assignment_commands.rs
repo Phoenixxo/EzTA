@@ -3,9 +3,9 @@ use std::fs;
 use std::path::PathBuf;
 
 use super::super::db::{
-    assignment_repo_count, assignment_workspace, fetch_assignment, fetch_student_repo,
-    list_assignments_inner, list_student_repos_inner, normalize_deadline, now_ts, open_conn,
-    slugify, update_assignment_timestamp,
+    assignment_submission_count, assignment_workspace, fetch_assignment, fetch_submission,
+    list_assignments_inner, list_submissions_inner, normalize_deadline, now_ts, open_conn,
+    slugify, update_assignment_timestamp, upsert_submission_member,
 };
 use super::super::external::{
     apply_repo_template, commit_exists, ensure_local_repo, fetch_existing_pr,
@@ -15,7 +15,7 @@ use super::super::external::{
 use super::super::models::{
     Assignment, CommitOptions, CommitRef, CreateAssignmentInput, CreateStudentRepoInput, GhPr,
     GhRepo, ImportRosterInput, ImportRosterResult, PrepareReviewResult, RecentCommit,
-    SaveReviewTargetInput, StudentRepo, SyncResult, UpdateAssignmentInput,
+    SaveReviewTargetInput, Submission, SyncResult, UpdateAssignmentInput,
     UpdateStudentRepoInput, ValidateReviewTargetResult,
 };
 use super::super::state::{AppContext, AppState};
@@ -38,7 +38,7 @@ fn normalize_submission_kind(value: Option<String>) -> AppResult<String> {
 
 pub(crate) fn sync_assignment_repos_inner(ctx: &AppContext, assignment_id: i64) -> AppResult<SyncResult> {
     let conn = open_conn(ctx)?;
-    let repos = list_student_repos_inner(&conn, assignment_id)?;
+    let repos = list_submissions_inner(&conn, assignment_id)?;
     if repos.is_empty() {
         return Err("import a classroom roster before syncing repositories".into());
     }
@@ -76,11 +76,32 @@ pub(crate) fn sync_assignment_repos_inner(ctx: &AppContext, assignment_id: i64) 
                     ],
                 )
                 .map_err(|err| err.to_string())?;
+                conn.execute(
+                    "UPDATE submissions
+                     SET repo_url = ?1, default_branch = ?2, local_path = ?3, last_error = NULL, updated_at = ?4
+                     WHERE id = ?5",
+                    params![
+                        details.html_url,
+                        details
+                            .default_branch
+                            .clone()
+                            .unwrap_or_else(|| "main".to_string()),
+                        local_path.to_string_lossy().to_string(),
+                        now,
+                        repo.id
+                    ],
+                )
+                .map_err(|err| err.to_string())?;
                 imported_count += 1;
             }
             Err(err) => {
                 conn.execute(
                     "UPDATE student_repos SET last_error = ?1, updated_at = ?2 WHERE id = ?3",
+                    params![err, now, repo.id],
+                )
+                .map_err(|db_err| db_err.to_string())?;
+                conn.execute(
+                    "UPDATE submissions SET last_error = ?1, updated_at = ?2 WHERE id = ?3",
                     params![err, now, repo.id],
                 )
                 .map_err(|db_err| db_err.to_string())?;
@@ -93,7 +114,7 @@ pub(crate) fn sync_assignment_repos_inner(ctx: &AppContext, assignment_id: i64) 
 
     Ok(SyncResult {
         imported_count,
-        total_count: assignment_repo_count(&conn, assignment_id)?,
+        total_count: assignment_submission_count(&conn, assignment_id)?,
         missing_count,
     })
 }
@@ -103,7 +124,7 @@ pub(crate) fn prepare_review_inner(
     student_repo_id: i64,
 ) -> AppResult<PrepareReviewResult> {
     let conn = open_conn(ctx)?;
-    let repo = fetch_student_repo(&conn, student_repo_id)?;
+    let repo = fetch_submission(&conn, student_repo_id)?;
     let assignment = fetch_assignment(&conn, repo.assignment_id)?;
     ensure_local_repo(&repo)?;
     let repo_path = PathBuf::from(&repo.local_path);
@@ -184,6 +205,27 @@ pub(crate) fn prepare_review_inner(
     let pr_number = if pr.number == 0 { None } else { Some(pr.number) };
     conn.execute(
         "UPDATE student_repos SET
+            base_branch_name = ?1,
+            submission_branch_name = ?2,
+            pr_url = ?3,
+            pr_number = ?4,
+            review_status = 'prepared',
+            last_error = NULL,
+            last_prepared_at = ?5,
+            updated_at = ?5
+         WHERE id = ?6",
+        params![
+            base_branch,
+            submission_branch,
+            pr.url,
+            pr_number,
+            now_ts(),
+            student_repo_id
+        ],
+    )
+    .map_err(|err| err.to_string())?;
+    conn.execute(
+        "UPDATE submissions SET
             base_branch_name = ?1,
             submission_branch_name = ?2,
             pr_url = ?3,
@@ -313,15 +355,15 @@ pub fn delete_assignment(
 pub fn list_student_repos(
     assignment_id: i64,
     state: tauri::State<'_, AppState>,
-) -> AppResult<Vec<StudentRepo>> {
-    with_db(&state, |conn| list_student_repos_inner(conn, assignment_id))
+) -> AppResult<Vec<Submission>> {
+    with_db(&state, |conn| list_submissions_inner(conn, assignment_id))
 }
 
 #[tauri::command]
 pub fn create_student_repo(
     input: CreateStudentRepoInput,
     state: tauri::State<'_, AppState>,
-) -> AppResult<StudentRepo> {
+) -> AppResult<Submission> {
     with_db(&state, |conn| {
         let assignment = fetch_assignment(conn, input.assignment_id)?;
         let now = now_ts();
@@ -357,12 +399,46 @@ pub fn create_student_repo(
             ],
         )
         .map_err(|err| err.to_string())?;
-        conn.query_row(
-            "SELECT * FROM student_repos WHERE assignment_id = ?1 AND repo_owner = ?2 AND repo_name = ?3",
-            params![input.assignment_id, input.repo_owner.trim(), input.repo_name.trim()],
-            super::super::db::map_student_repo,
+        conn.execute(
+            "INSERT INTO submissions (
+                assignment_id, repo_owner, repo_name, repo_url, default_branch, local_path,
+                review_status, notes, updated_at
+            )
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, 'not_started', '', ?7)
+            ON CONFLICT(assignment_id, repo_owner, repo_name) DO UPDATE SET
+                default_branch = excluded.default_branch,
+                repo_url = excluded.repo_url,
+                local_path = excluded.local_path,
+                updated_at = excluded.updated_at",
+            params![
+                input.assignment_id,
+                input.repo_owner.trim(),
+                input.repo_name.trim(),
+                repo_url,
+                input.default_branch.clone().unwrap_or_else(|| "main".to_string()),
+                local_path.to_string_lossy().to_string(),
+                now
+            ],
         )
-        .map_err(|err| err.to_string())
+        .map_err(|err| err.to_string())?;
+        let submission_id: i64 = conn
+            .query_row(
+                "SELECT id FROM submissions WHERE assignment_id = ?1 AND repo_owner = ?2 AND repo_name = ?3",
+                params![input.assignment_id, input.repo_owner.trim(), input.repo_name.trim()],
+                |row| row.get(0),
+            )
+            .map_err(|err| err.to_string())?;
+        upsert_submission_member(
+            conn,
+            submission_id,
+            input.student_key.trim(),
+            input.student_name.trim(),
+            None,
+            None,
+            None,
+            now,
+        )?;
+        fetch_submission(conn, submission_id)
     })
 }
 
@@ -435,6 +511,42 @@ pub fn import_classroom_roster(
             ],
         )
         .map_err(|err| err.to_string())?;
+        conn.execute(
+            "INSERT INTO submissions (
+                assignment_id, repo_owner, repo_name, repo_url, default_branch, local_path, review_status, notes, updated_at
+            )
+            VALUES (?1, ?2, ?3, ?4, 'main', ?5, 'not_started', '', ?6)
+            ON CONFLICT(assignment_id, repo_owner, repo_name) DO UPDATE SET
+                repo_url = excluded.repo_url,
+                local_path = excluded.local_path,
+                updated_at = excluded.updated_at",
+            params![
+                input.assignment_id,
+                assignment.github_org.trim(),
+                repo_name.trim(),
+                repo_url,
+                local_path.to_string_lossy().to_string(),
+                now
+            ],
+        )
+        .map_err(|err| err.to_string())?;
+        let submission_id: i64 = conn
+            .query_row(
+                "SELECT id FROM submissions WHERE assignment_id = ?1 AND repo_owner = ?2 AND repo_name = ?3",
+                params![input.assignment_id, assignment.github_org.trim(), repo_name.trim()],
+                |row| row.get(0),
+            )
+            .map_err(|err| err.to_string())?;
+        upsert_submission_member(
+            conn,
+            submission_id,
+            row.identifier.trim(),
+            row.name.trim(),
+            Some(row.github_username.trim()),
+            row.github_id.as_deref().map(str::trim),
+            row.group_name.as_deref().map(str::trim),
+            now,
+        )?;
         imported_count += 1;
     }
 
@@ -462,7 +574,7 @@ pub fn import_classroom_roster(
     Ok(ImportRosterResult {
         imported_count,
         skipped_count,
-        total_count: assignment_repo_count(conn, input.assignment_id)?,
+        total_count: assignment_submission_count(conn, input.assignment_id)?,
     })
     })
 }
@@ -471,14 +583,19 @@ pub fn import_classroom_roster(
 pub fn update_student_repo(
     input: UpdateStudentRepoInput,
     state: tauri::State<'_, AppState>,
-) -> AppResult<StudentRepo> {
+) -> AppResult<Submission> {
     with_db(&state, |conn| {
         conn.execute(
             "UPDATE student_repos SET notes = ?1, review_status = ?2, updated_at = ?3 WHERE id = ?4",
             params![input.notes, input.review_status, now_ts(), input.student_repo_id],
         )
         .map_err(|err| err.to_string())?;
-        fetch_student_repo(conn, input.student_repo_id)
+        conn.execute(
+            "UPDATE submissions SET notes = ?1, review_status = ?2, updated_at = ?3 WHERE id = ?4",
+            params![input.notes, input.review_status, now_ts(), input.student_repo_id],
+        )
+        .map_err(|err| err.to_string())?;
+        fetch_submission(conn, input.student_repo_id)
     })
 }
 
@@ -486,8 +603,8 @@ pub fn update_student_repo(
 pub fn save_review_target(
     input: SaveReviewTargetInput,
     state: tauri::State<'_, AppState>,
-) -> AppResult<StudentRepo> {
-    let repo = with_db(&state, |conn| fetch_student_repo(conn, input.student_repo_id))?;
+) -> AppResult<Submission> {
+    let repo = with_db(&state, |conn| fetch_submission(conn, input.student_repo_id))?;
     ensure_local_repo(&repo)?;
     let repo_path = PathBuf::from(&repo.local_path);
     if input.base_sha.trim() == input.submission_sha.trim() {
@@ -499,6 +616,14 @@ pub fn save_review_target(
     if !commit_exists(&repo_path, input.submission_sha.trim()) {
         return Err("submission commit does not exist in this repository".into());
     }
+    let base_label = input
+        .base_label
+        .clone()
+        .unwrap_or_else(|| input.base_sha.trim().to_string());
+    let submission_label = input
+        .submission_label
+        .clone()
+        .unwrap_or_else(|| input.submission_sha.trim().to_string());
 
     with_db(&state, |conn| {
         conn.execute(
@@ -508,15 +633,28 @@ pub fn save_review_target(
             params![
                 input.base_sha.trim(),
                 input.submission_sha.trim(),
-                input.base_label.unwrap_or_else(|| input.base_sha.trim().to_string()),
-                input.submission_label
-                    .unwrap_or_else(|| input.submission_sha.trim().to_string()),
+                &base_label,
+                &submission_label,
                 now_ts(),
                 input.student_repo_id
             ],
         )
         .map_err(|err| err.to_string())?;
-        fetch_student_repo(conn, input.student_repo_id)
+        conn.execute(
+            "UPDATE submissions
+             SET base_sha = ?1, submission_sha = ?2, base_label = ?3, submission_label = ?4, last_error = NULL, updated_at = ?5
+             WHERE id = ?6",
+            params![
+                input.base_sha.trim(),
+                input.submission_sha.trim(),
+                &base_label,
+                &submission_label,
+                now_ts(),
+                input.student_repo_id
+            ],
+        )
+        .map_err(|err| err.to_string())?;
+        fetch_submission(conn, input.student_repo_id)
     })
 }
 
@@ -527,7 +665,7 @@ pub fn validate_review_target(
     submission_sha: String,
     state: tauri::State<'_, AppState>,
 ) -> AppResult<ValidateReviewTargetResult> {
-    let repo = with_db(&state, |conn| fetch_student_repo(conn, student_repo_id))?;
+    let repo = with_db(&state, |conn| fetch_submission(conn, student_repo_id))?;
     ensure_local_repo(&repo)?;
     let repo_path = PathBuf::from(&repo.local_path);
     Ok(ValidateReviewTargetResult {
@@ -542,7 +680,7 @@ pub fn list_commit_options(
     state: tauri::State<'_, AppState>,
 ) -> AppResult<CommitOptions> {
     let (repo, assignment) = with_db(&state, |conn| {
-        let repo = fetch_student_repo(conn, student_repo_id)?;
+        let repo = fetch_submission(conn, student_repo_id)?;
         let assignment = fetch_assignment(conn, repo.assignment_id)?;
         Ok((repo, assignment))
     })?;

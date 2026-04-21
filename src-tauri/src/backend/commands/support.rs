@@ -3,7 +3,7 @@ use super::super::db::{
     map_draft_comment, with_conn,
 };
 use super::super::external::run_json_command;
-use super::super::models::{ClassroomRosterRow, DraftComment, GhApiRepo, GhAuthenticatedUser, GithubConnectionStatus, StudentRepo};
+use super::super::models::{ClassroomRosterRow, DraftComment, GhApiRepo, GhAuthenticatedUser, GithubConnectionStatus, Submission};
 use super::super::state::AppState;
 use super::super::AppResult;
 
@@ -93,7 +93,7 @@ pub fn fetch_org_repos_from_gh(github_org: &str) -> AppResult<Vec<GhApiRepo>> {
     Ok(repos)
 }
 
-pub fn require_review_shas(repo: &StudentRepo) -> AppResult<(String, String)> {
+pub fn require_review_shas(repo: &Submission) -> AppResult<(String, String)> {
     let base_sha = repo
         .base_sha
         .clone()

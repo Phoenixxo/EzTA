@@ -57,6 +57,11 @@ pub struct StudentRepo {
 pub struct Submission {
     pub id: i64,
     pub assignment_id: i64,
+    pub student_key: String,
+    pub student_name: String,
+    pub github_username: Option<String>,
+    pub github_id: Option<String>,
+    pub roster_group_name: Option<String>,
     pub repo_owner: String,
     pub repo_name: String,
     pub repo_url: String,
@@ -75,6 +80,7 @@ pub struct Submission {
     pub submission_branch_name: Option<String>,
     pub last_prepared_at: Option<i64>,
     pub updated_at: i64,
+    pub members: Vec<SubmissionMember>,
 }
 
 #[allow(dead_code)]
