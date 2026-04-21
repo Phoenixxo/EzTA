@@ -4,6 +4,7 @@ mod draft_comments;
 mod org_repo_index;
 mod schema;
 mod student_repos;
+mod submissions;
 mod util;
 
 pub use assignments::{

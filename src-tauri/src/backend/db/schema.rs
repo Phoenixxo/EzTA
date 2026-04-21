@@ -48,6 +48,42 @@ pub fn init_db(conn: &Connection) -> AppResult<()> {
             UNIQUE(assignment_id, repo_owner, repo_name)
         );
 
+        CREATE TABLE IF NOT EXISTS submissions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assignment_id INTEGER NOT NULL,
+            repo_owner TEXT NOT NULL,
+            repo_name TEXT NOT NULL,
+            repo_url TEXT NOT NULL,
+            default_branch TEXT NOT NULL DEFAULT 'main',
+            local_path TEXT NOT NULL,
+            review_status TEXT NOT NULL DEFAULT 'not_started',
+            notes TEXT NOT NULL DEFAULT '',
+            pr_url TEXT,
+            pr_number INTEGER,
+            last_error TEXT,
+            base_sha TEXT,
+            submission_sha TEXT,
+            base_label TEXT,
+            submission_label TEXT,
+            base_branch_name TEXT,
+            submission_branch_name TEXT,
+            last_prepared_at INTEGER,
+            updated_at INTEGER NOT NULL,
+            UNIQUE(assignment_id, repo_owner, repo_name)
+        );
+
+        CREATE TABLE IF NOT EXISTS submission_members (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            submission_id INTEGER NOT NULL,
+            student_key TEXT NOT NULL DEFAULT '',
+            student_name TEXT NOT NULL DEFAULT '',
+            github_username TEXT,
+            github_id TEXT,
+            group_name TEXT,
+            updated_at INTEGER NOT NULL,
+            UNIQUE(submission_id, student_key)
+        );
+
         CREATE TABLE IF NOT EXISTS draft_comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             student_repo_id INTEGER NOT NULL,

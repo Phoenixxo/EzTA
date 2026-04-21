@@ -110,6 +110,40 @@ export type StudentRepo = {
   updatedAt: number;
 };
 
+export type Submission = {
+  id: number;
+  assignmentId: number;
+  repoOwner: string;
+  repoName: string;
+  repoUrl: string;
+  defaultBranch: string;
+  localPath: string;
+  reviewStatus: string;
+  notes: string;
+  prUrl: string | null;
+  prNumber: number | null;
+  lastError: string | null;
+  baseSha: string | null;
+  submissionSha: string | null;
+  baseLabel: string | null;
+  submissionLabel: string | null;
+  baseBranchName: string | null;
+  submissionBranchName: string | null;
+  lastPreparedAt: number | null;
+  updatedAt: number;
+};
+
+export type SubmissionMember = {
+  id: number;
+  submissionId: number;
+  studentKey: string;
+  studentName: string;
+  githubUsername: string | null;
+  githubId: string | null;
+  groupName: string | null;
+  updatedAt: number;
+};
+
 export type ChangedFile = {
   path: string;
   previousPath: string | null;

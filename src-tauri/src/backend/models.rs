@@ -51,6 +51,46 @@ pub struct StudentRepo {
     pub updated_at: i64,
 }
 
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Submission {
+    pub id: i64,
+    pub assignment_id: i64,
+    pub repo_owner: String,
+    pub repo_name: String,
+    pub repo_url: String,
+    pub default_branch: String,
+    pub local_path: String,
+    pub review_status: String,
+    pub notes: String,
+    pub pr_url: Option<String>,
+    pub pr_number: Option<i64>,
+    pub last_error: Option<String>,
+    pub base_sha: Option<String>,
+    pub submission_sha: Option<String>,
+    pub base_label: Option<String>,
+    pub submission_label: Option<String>,
+    pub base_branch_name: Option<String>,
+    pub submission_branch_name: Option<String>,
+    pub last_prepared_at: Option<i64>,
+    pub updated_at: i64,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SubmissionMember {
+    pub id: i64,
+    pub submission_id: i64,
+    pub student_key: String,
+    pub student_name: String,
+    pub github_username: Option<String>,
+    pub github_id: Option<String>,
+    pub group_name: Option<String>,
+    pub updated_at: i64,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ChangedFile {
