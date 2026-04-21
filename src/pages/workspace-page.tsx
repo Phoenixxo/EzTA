@@ -23,6 +23,40 @@ type Route =
   | { page: "review"; assignmentId: number; studentRepoId: number }
   | { page: "summary"; assignmentId: number };
 
+function isPositiveInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value > 0;
+}
+
+function isRoute(value: unknown): value is Route {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  switch (candidate.page) {
+    case "assignments":
+      return true;
+    case "assignment":
+      return (
+        isPositiveInteger(candidate.assignmentId) &&
+        (candidate.tab === "queue" ||
+          candidate.tab === "import" ||
+          candidate.tab === "settings" ||
+          candidate.tab === "overview")
+      );
+    case "student":
+    case "review":
+      return (
+        isPositiveInteger(candidate.assignmentId) &&
+        isPositiveInteger(candidate.studentRepoId)
+      );
+    case "summary":
+      return isPositiveInteger(candidate.assignmentId);
+    default:
+      return false;
+  }
+}
+
 export function WorkspacePage() {
   const workspace = useEztaWorkspace();
   const [route, setRoute] = useState<Route>({ page: "assignments" });
@@ -44,7 +78,7 @@ export function WorkspacePage() {
       : null;
 
   useEffect(() => {
-    const parsed = readStoredRoute<Route>();
+    const parsed = readStoredRoute<Route>(isRoute);
     if (parsed) {
       setRoute(parsed);
     }
@@ -77,6 +111,44 @@ export function WorkspacePage() {
       setRoute({ page: "assignments" });
     }
   }, [currentAssignmentId, workspace.assignments]);
+
+  useEffect(() => {
+    if (route.page !== "student" && route.page !== "review") {
+      return;
+    }
+    if (workspace.selectedAssignmentId !== route.assignmentId) {
+      return;
+    }
+    if (workspace.busy) {
+      return;
+    }
+
+    const matchingRepo = workspace.repos.find((repo) => repo.id === route.studentRepoId);
+    if (matchingRepo) {
+      return;
+    }
+
+    if (workspace.selectedRepoId && workspace.repos.some((repo) => repo.id === workspace.selectedRepoId)) {
+      setRoute({
+        page: route.page,
+        assignmentId: route.assignmentId,
+        studentRepoId: workspace.selectedRepoId,
+      });
+      return;
+    }
+
+    setRoute({
+      page: "assignment",
+      assignmentId: route.assignmentId,
+      tab: "queue",
+    });
+  }, [
+    route,
+    workspace.busy,
+    workspace.repos,
+    workspace.selectedAssignmentId,
+    workspace.selectedRepoId,
+  ]);
 
   useEffect(() => {
     function isTypingTarget(target: EventTarget | null) {

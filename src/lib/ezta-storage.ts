@@ -27,6 +27,15 @@ const versionSensitiveStorageKeys = [
   eztaStorageKeys.queueSort,
 ] as const;
 
+export function clearVersionSensitiveFrontendState() {
+  if (typeof window === "undefined") {
+    return;
+  }
+  for (const storageKey of versionSensitiveStorageKeys) {
+    window.localStorage.removeItem(storageKey);
+  }
+}
+
 export function ensureFrontendStateCompatibility() {
   if (typeof window === "undefined") {
     return;
@@ -37,9 +46,7 @@ export function ensureFrontendStateCompatibility() {
     return;
   }
 
-  for (const storageKey of versionSensitiveStorageKeys) {
-    window.localStorage.removeItem(storageKey);
-  }
+  clearVersionSensitiveFrontendState();
   if (storedVersion !== null) {
     window.localStorage.setItem(
       eztaStorageKeys.frontendStateResetNotice,
@@ -174,7 +181,9 @@ export function syncEditorPreferenceFromStorageEvent(
   }
 }
 
-export function readStoredRoute<Route>() {
+export function readStoredRoute<Route>(
+  isRoute: (value: unknown) => value is Route,
+) {
   if (typeof window === "undefined") {
     return null;
   }
@@ -183,7 +192,12 @@ export function readStoredRoute<Route>() {
     return null;
   }
   try {
-    return JSON.parse(stored) as Route;
+    const parsed = JSON.parse(stored) as unknown;
+    if (isRoute(parsed)) {
+      return parsed;
+    }
+    window.localStorage.removeItem(eztaStorageKeys.route);
+    return null;
   } catch {
     window.localStorage.removeItem(eztaStorageKeys.route);
     return null;
