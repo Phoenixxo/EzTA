@@ -4,6 +4,37 @@ export function shortSha(value: string | null) {
   return value ? value.slice(0, 10) : "Unset";
 }
 
+export function submissionDisplayName(repo: StudentRepo) {
+  return (
+    repo.rosterGroupName?.trim() ||
+    repo.studentName ||
+    repo.studentKey ||
+    repo.repoName
+  );
+}
+
+export function submissionMemberNames(repo: StudentRepo) {
+  if (repo.members.length > 0) {
+    return repo.members.map((member) => member.studentName || member.studentKey).filter(Boolean);
+  }
+  return [repo.studentName || repo.studentKey].filter(Boolean);
+}
+
+export function submissionMemberSummary(repo: StudentRepo) {
+  const names = submissionMemberNames(repo);
+  if (names.length === 0) {
+    return "No members stored";
+  }
+  if (names.length === 1) {
+    return names[0];
+  }
+  return `${names.length} members: ${names.join(", ")}`;
+}
+
+export function isGroupSubmission(repo: StudentRepo) {
+  return repo.members.length > 1 || Boolean(repo.rosterGroupName);
+}
+
 export function localDateTimeInputToUtcIso(value: string) {
   if (!value) {
     return null;

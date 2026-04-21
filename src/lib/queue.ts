@@ -1,4 +1,5 @@
 import type { QueueSort, ReviewStatusFilter, StudentRepo } from "../types/ezta";
+import { submissionDisplayName, submissionMemberSummary } from "./format";
 
 export function filterAndSortRepos(
   repos: StudentRepo[],
@@ -13,10 +14,19 @@ export function filterAndSortRepos(
       return matchesStatus;
     }
     const haystack = [
+      repo.rosterGroupName ?? "",
       repo.studentKey,
       repo.studentName,
       repo.repoOwner,
       repo.repoName,
+      repo.githubUsername ?? "",
+      repo.githubId ?? "",
+      submissionDisplayName(repo),
+      submissionMemberSummary(repo),
+      ...repo.members.map((member) =>
+        [member.studentKey, member.studentName, member.githubUsername ?? "", member.githubId ?? ""]
+          .join(" "),
+      ),
       repo.baseSha ?? "",
       repo.submissionSha ?? "",
     ]
@@ -32,15 +42,15 @@ export function filterAndSortRepos(
           `${right.repoOwner}/${right.repoName}`,
         );
       case "status":
-        return `${left.reviewStatus}:${left.studentKey}:${left.repoName}`.localeCompare(
-          `${right.reviewStatus}:${right.studentKey}:${right.repoName}`,
+        return `${left.reviewStatus}:${submissionDisplayName(left)}:${left.repoName}`.localeCompare(
+          `${right.reviewStatus}:${submissionDisplayName(right)}:${right.repoName}`,
         );
       case "updated":
         return (right.updatedAt ?? 0) - (left.updatedAt ?? 0);
       case "student":
       default:
-        return `${left.studentKey}:${left.studentName}:${left.repoName}`.localeCompare(
-          `${right.studentKey}:${right.studentName}:${right.repoName}`,
+        return `${submissionDisplayName(left)}:${left.repoName}`.localeCompare(
+          `${submissionDisplayName(right)}:${right.repoName}`,
         );
     }
   });

@@ -1,5 +1,6 @@
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import type { CommitOptions, StudentRepo } from "../types/ezta";
+import { submissionDisplayName } from "../lib/format";
 import { Breadcrumbs } from "../components/navigation/breadcrumbs";
 import { Button } from "../components/ui/button";
 import { InspectorPane } from "../components/workspace/inspector-pane";
@@ -77,7 +78,7 @@ export function StudentReviewPage({
         items={[
           { label: "Assignments", onClick: onOpenAssignments },
           { label: assignmentName ?? "Assignment", onClick: onOpenDashboard },
-          { label: selectedRepo?.studentName || selectedRepo?.repoName || "Student Review" },
+          { label: selectedRepo ? submissionDisplayName(selectedRepo) : "Submission Review" },
         ]}
       />
 
@@ -88,10 +89,10 @@ export function StudentReviewPage({
         </Button>
         <Button type="button" size="sm" variant="outline" onClick={onOpenPrevious} disabled={!hasPrevious}>
           <ChevronLeft className="h-3.5 w-3.5" />
-          Previous student
+          Previous submission
         </Button>
         <Button type="button" size="sm" variant="outline" onClick={onOpenNext} disabled={!hasNext}>
-          Next student
+          Next submission
           <ChevronRight className="h-3.5 w-3.5" />
         </Button>
         <div className="border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-600">

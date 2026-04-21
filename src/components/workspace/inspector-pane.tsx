@@ -8,7 +8,12 @@ import {
   LoaderCircle,
   NotebookPen,
 } from "lucide-react";
-import { shortSha } from "../../lib/format";
+import {
+  isGroupSubmission,
+  shortSha,
+  submissionDisplayName,
+  submissionMemberSummary,
+} from "../../lib/format";
 import { openExternalLink } from "../../lib/ezta";
 import { cn } from "../../lib/utils";
 import type { CommitOptions, StudentRepo } from "../../types/ezta";
@@ -96,7 +101,7 @@ export function InspectorPane({
 
   return (
     <PanelShell
-      title="Student Review"
+      title="Submission Review"
       subtitle={
         selectedRepo
           ? `${selectedPosition}/${filteredRepoCount || 1}`
@@ -134,12 +139,16 @@ export function InspectorPane({
         <>
           <div className="border-b border-zinc-300 bg-white px-4 py-3">
             <div className="truncate text-sm font-semibold text-zinc-900">
-              {selectedRepo.studentName ||
-                selectedRepo.studentKey ||
-                selectedRepo.repoName}
+              {submissionDisplayName(selectedRepo)}
+            </div>
+            <div className="truncate text-xs text-zinc-500">
+              {isGroupSubmission(selectedRepo) ? "Team submission" : "Individual submission"}
             </div>
             <div className="truncate text-xs text-zinc-500">
               {selectedRepo.repoOwner}/{selectedRepo.repoName}
+            </div>
+            <div className="truncate text-xs text-zinc-500">
+              {submissionMemberSummary(selectedRepo)}
             </div>
             <div className="truncate text-xs text-zinc-400">
               {selectedRepo.localPath}

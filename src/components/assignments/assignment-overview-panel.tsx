@@ -31,7 +31,7 @@ export function AssignmentOverviewPanel({
       className={className}
     >
       <div className="grid gap-3 bg-[#fbfbfa] p-4 md:grid-cols-2 xl:grid-cols-5">
-        <OverviewMetric label="Queue" value={repos.length} />
+        <OverviewMetric label="Submissions" value={repos.length} />
         <OverviewMetric label="Not Started" value={notStartedCount} />
         <OverviewMetric label="Prepared" value={preparedCount} />
         <OverviewMetric label="Reviewed" value={reviewedCount} />

@@ -1,4 +1,5 @@
 import type { Assignment, StudentRepo } from "../types/ezta";
+import { submissionDisplayName, submissionMemberSummary } from "../lib/format";
 import { Breadcrumbs } from "../components/navigation/breadcrumbs";
 import { Button } from "../components/ui/button";
 import { StatusBadge } from "../components/workspace/status-badge";
@@ -34,7 +35,7 @@ export function ReviewSummaryPage({
         <div className="rounded-none border border-zinc-300 bg-white">
           <div className="border-b border-zinc-300 px-4 py-3">
             <div className="text-sm font-semibold text-zinc-900">Review queue</div>
-            <div className="text-xs text-zinc-500">{repos.length} repositories in this assignment</div>
+            <div className="text-xs text-zinc-500">{repos.length} submissions in this assignment</div>
           </div>
           <div className="max-h-[calc(100vh-14rem)] overflow-y-auto">
             {repos.map((repo) => (
@@ -46,10 +47,13 @@ export function ReviewSummaryPage({
               >
                 <div className="min-w-0">
                   <div className="truncate text-sm font-medium text-zinc-900">
-                    {repo.studentKey || repo.studentName || repo.repoName}
+                    {submissionDisplayName(repo)}
                   </div>
                   <div className="truncate text-xs text-zinc-500">
                     {repo.repoOwner}/{repo.repoName}
+                  </div>
+                  <div className="truncate text-xs text-zinc-500">
+                    {submissionMemberSummary(repo)}
                   </div>
                 </div>
                 <StatusBadge status={repo.reviewStatus} />
@@ -69,7 +73,7 @@ export function ReviewSummaryPage({
             <div className="text-sm font-semibold text-zinc-900">Next recommended repo</div>
             <div className="mt-2 text-sm text-zinc-600">
               {unresolvedRepos[0]
-                ? `${unresolvedRepos[0].studentName || unresolvedRepos[0].repoName}`
+                ? `${submissionDisplayName(unresolvedRepos[0])}`
                 : "All repos are reviewed."}
             </div>
             {unresolvedRepos[0] ? (
@@ -80,7 +84,7 @@ export function ReviewSummaryPage({
                 className="mt-3"
                 onClick={() => onOpenStudent(unresolvedRepos[0].id)}
               >
-                Open student
+                Open submission
               </Button>
             ) : null}
           </div>

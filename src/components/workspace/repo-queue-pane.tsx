@@ -2,7 +2,13 @@ import { FormEvent, useState } from "react";
 import { ChevronRight, Plus, Search } from "lucide-react";
 import type { QueueSort, RepoForm, ReviewStatusFilter, StudentRepo } from "../../types/ezta";
 import { emptyRepoForm, queueSorts, reviewStatuses } from "../../types/ezta";
-import { nextRepoId, shortSha } from "../../lib/format";
+import {
+  isGroupSubmission,
+  nextRepoId,
+  shortSha,
+  submissionDisplayName,
+  submissionMemberSummary,
+} from "../../lib/format";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -130,7 +136,7 @@ export function RepoQueuePane({
             <Input
               value={repoQuery}
               onChange={(event) => onRepoQueryChange(event.currentTarget.value)}
-              placeholder="Filter by student, repo, or SHA"
+              placeholder="Filter by team, member, repo, or SHA"
               className="h-9 rounded-none pl-9"
             />
           </div>
@@ -162,7 +168,7 @@ export function RepoQueuePane({
 
       <div className="flex min-h-0 flex-col overflow-hidden bg-white">
         <div className="grid grid-cols-[1fr_1.1fr_0.75fr_0.7fr_0.7fr_0.55fr] gap-3 border-b border-zinc-300 bg-zinc-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-          <span>Student</span>
+          <span>Submission</span>
           <span>Repository</span>
           <span>Status</span>
           <span>Base</span>
@@ -184,8 +190,15 @@ export function RepoQueuePane({
               )}
             >
               <div className="min-w-0">
-                <div className="truncate font-medium">{repo.studentKey || repo.studentName || "Unknown"}</div>
-                <div className="truncate text-xs opacity-65">{repo.studentName || "No name stored"}</div>
+                <div className="truncate font-medium">
+                  {submissionDisplayName(repo) || "Unknown"}
+                </div>
+                <div className="truncate text-xs opacity-65">
+                  {isGroupSubmission(repo) ? "Team submission" : "Individual submission"}
+                </div>
+                <div className="truncate text-xs opacity-65">
+                  {submissionMemberSummary(repo)}
+                </div>
               </div>
               <div className="min-w-0">
                 <div className="truncate">{repo.repoOwner}/{repo.repoName}</div>

@@ -10,6 +10,7 @@ import {
   Search,
   Send,
 } from "lucide-react";
+import { submissionDisplayName, submissionMemberSummary } from "../../../lib/format";
 import { cn } from "../../../lib/utils";
 import type { DraftComment, StudentRepo } from "../../../types/ezta";
 import { Button } from "../../../components/ui/button";
@@ -180,7 +181,7 @@ export function ReviewWorkspace({ selectedRepo, editorCommand, onBack }: ReviewW
 
       <PanelShell
         title={review.selectedPath ?? "File viewer"}
-        subtitle={selectedRepo.repoName}
+        subtitle={`${submissionDisplayName(selectedRepo)} · ${selectedRepo.repoName}`}
         actions={
           <div className="flex items-center gap-2">
             {selectedRepo.prUrl ? (
@@ -238,6 +239,7 @@ export function ReviewWorkspace({ selectedRepo, editorCommand, onBack }: ReviewW
         <div className="flex h-full min-h-0 flex-col bg-white">
           <div className="flex items-center gap-2 border-b border-zinc-200 px-4 py-2 text-xs text-zinc-500">
             <StatusBadge status={selectedRepo.reviewStatus} />
+            <span className="truncate">{submissionMemberSummary(selectedRepo)}</span>
             {review.busy ? <span>Loading review data...</span> : null}
             {review.error ? <span className="text-red-600">{review.error}</span> : null}
             {editorError ? <span className="text-red-600">{editorError}</span> : null}
