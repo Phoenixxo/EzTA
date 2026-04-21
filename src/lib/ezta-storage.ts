@@ -1,14 +1,65 @@
+import appPackage from "../../package.json";
 import type { EditorPreference, QueueSort, ReviewStatusFilter } from "../types/ezta";
 
+export const frontendStateVersion = appPackage.version;
+
 export const eztaStorageKeys = {
+  frontendStateVersion: "ezta.frontendStateVersion",
+  frontendStateResetNotice: "ezta.frontendStateResetNotice",
   editorApp: "ezta.preferredEditorApp",
   editorApplicationPath: "ezta.preferredEditorApplicationPath",
+  route: "ezta.route",
   selectedAssignmentId: "ezta.selectedAssignmentId",
   selectedRepoId: "ezta.selectedRepoId",
   statusFilter: "ezta.statusFilter",
   repoQuery: "ezta.repoQuery",
   queueSort: "ezta.queueSort",
 } as const;
+
+const versionSensitiveStorageKeys = [
+  eztaStorageKeys.editorApp,
+  eztaStorageKeys.editorApplicationPath,
+  eztaStorageKeys.route,
+  eztaStorageKeys.selectedAssignmentId,
+  eztaStorageKeys.selectedRepoId,
+  eztaStorageKeys.statusFilter,
+  eztaStorageKeys.repoQuery,
+  eztaStorageKeys.queueSort,
+] as const;
+
+export function ensureFrontendStateCompatibility() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const storedVersion = window.localStorage.getItem(eztaStorageKeys.frontendStateVersion);
+  if (storedVersion === frontendStateVersion) {
+    return;
+  }
+
+  for (const storageKey of versionSensitiveStorageKeys) {
+    window.localStorage.removeItem(storageKey);
+  }
+  if (storedVersion !== null) {
+    window.localStorage.setItem(
+      eztaStorageKeys.frontendStateResetNotice,
+      "EzTA reset saved UI state after an app upgrade to avoid incompatible startup data.",
+    );
+  }
+  window.localStorage.setItem(
+    eztaStorageKeys.frontendStateVersion,
+    frontendStateVersion,
+  );
+}
+
+export function consumeFrontendStateResetNotice() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  const notice = window.localStorage.getItem(eztaStorageKeys.frontendStateResetNotice) ?? "";
+  window.localStorage.removeItem(eztaStorageKeys.frontendStateResetNotice);
+  return notice;
+}
 
 export function readStoredEditorPreference(): {
   app: EditorPreference | null;
@@ -121,6 +172,29 @@ export function syncEditorPreferenceFromStorageEvent(
   if (event.key === eztaStorageKeys.editorApplicationPath) {
     handlers.setEditorApplicationPathInput(event.newValue ?? "");
   }
+}
+
+export function readStoredRoute<Route>() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  const stored = window.localStorage.getItem(eztaStorageKeys.route);
+  if (!stored) {
+    return null;
+  }
+  try {
+    return JSON.parse(stored) as Route;
+  } catch {
+    window.localStorage.removeItem(eztaStorageKeys.route);
+    return null;
+  }
+}
+
+export function writeStoredRoute<Route>(route: Route) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.setItem(eztaStorageKeys.route, JSON.stringify(route));
 }
 
 function parsePositiveNumber(value: string | null) {

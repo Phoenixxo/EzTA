@@ -8,6 +8,7 @@ import { AssignmentDashboardPage } from "./assignment-dashboard-page";
 import { StudentReviewPage } from "./student-review-page";
 import { ReviewSummaryPage } from "./review-summary-page";
 import { ReviewWorkspace } from "../features/review/components/review-workspace";
+import { readStoredRoute, writeStoredRoute } from "../lib/ezta-storage";
 import { openSettingsWindow } from "../lib/settings-window";
 import { JobTray } from "../components/workspace/job-tray";
 
@@ -24,7 +25,6 @@ type Route =
 
 export function WorkspacePage() {
   const workspace = useEztaWorkspace();
-  const routeStorageKey = "ezta.route";
   const [route, setRoute] = useState<Route>({ page: "assignments" });
   const { jobs, dismissJob } = useBackgroundJobsPoll();
 
@@ -44,26 +44,14 @@ export function WorkspacePage() {
       : null;
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    const stored = window.localStorage.getItem(routeStorageKey);
-    if (!stored) {
-      return;
-    }
-    try {
-      const parsed = JSON.parse(stored) as Route;
+    const parsed = readStoredRoute<Route>();
+    if (parsed) {
       setRoute(parsed);
-    } catch {
-      window.localStorage.removeItem(routeStorageKey);
     }
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    window.localStorage.setItem(routeStorageKey, JSON.stringify(route));
+    writeStoredRoute(route);
   }, [route]);
 
   useEffect(() => {

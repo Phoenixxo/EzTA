@@ -9,6 +9,12 @@ import {
   installAppUpdate,
   launchGithubAuth,
 } from "../lib/ezta";
+import {
+  consumeFrontendStateResetNotice,
+  readStoredEditorPreference,
+  syncEditorPreferenceFromStorageEvent,
+  writeStoredEditorPreference,
+} from "../lib/ezta-storage";
 import type {
   AppUpdateCheckResult,
   AppUpdaterOverview,
@@ -16,9 +22,6 @@ import type {
   GithubConnectionStatus,
   LocalDataSnapshot,
 } from "../types/ezta";
-
-const editorAppStorageKey = "ezta.preferredEditorApp";
-const editorApplicationPathStorageKey = "ezta.preferredEditorApplicationPath";
 
 export function useAppSettings() {
   const [editorAppInput, setEditorAppInput] = useState<EditorPreference>("system");
@@ -39,39 +42,27 @@ export function useAppSettings() {
   );
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
+    const storedPreference = readStoredEditorPreference();
+    if (storedPreference.app) {
+      setEditorAppInput(storedPreference.app);
     }
-    const storedApp = window.localStorage.getItem(editorAppStorageKey);
-    const storedApplicationPath =
-      window.localStorage.getItem(editorApplicationPathStorageKey) ?? "";
-    if (storedApp === "system" || storedApp === "application") {
-      setEditorAppInput(storedApp);
+    setEditorApplicationPathInput(storedPreference.applicationPath);
+    const resetNotice = consumeFrontendStateResetNotice();
+    if (resetNotice) {
+      setDataSafetyMessage(resetNotice);
     }
-    setEditorApplicationPathInput(storedApplicationPath);
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    window.localStorage.setItem(editorAppStorageKey, editorAppInput);
-    window.localStorage.setItem(
-      editorApplicationPathStorageKey,
-      editorApplicationPathInput,
-    );
+    writeStoredEditorPreference(editorAppInput, editorApplicationPathInput);
   }, [editorAppInput, editorApplicationPathInput]);
 
   useEffect(() => {
     function handleStorage(event: StorageEvent) {
-      if (event.key === editorAppStorageKey && event.newValue) {
-        if (event.newValue === "system" || event.newValue === "application") {
-          setEditorAppInput(event.newValue);
-        }
-      }
-      if (event.key === editorApplicationPathStorageKey) {
-        setEditorApplicationPathInput(event.newValue ?? "");
-      }
+      syncEditorPreferenceFromStorageEvent(event, {
+        setEditorAppInput,
+        setEditorApplicationPathInput,
+      });
     }
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
