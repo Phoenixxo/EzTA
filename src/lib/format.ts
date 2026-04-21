@@ -15,20 +15,40 @@ export function submissionDisplayName(repo: StudentRepo) {
 
 export function submissionMemberNames(repo: StudentRepo) {
   if (repo.members.length > 0) {
-    return repo.members.map((member) => member.studentName || member.studentKey).filter(Boolean);
+    return Array.from(
+      new Set(
+        repo.members
+          .map((member) => member.studentName || member.studentKey)
+          .map((value) => value?.trim())
+          .filter(Boolean),
+      ),
+    );
   }
-  return [repo.studentName || repo.studentKey].filter(Boolean);
+  const fallback = repo.studentName || repo.studentKey;
+  return fallback ? [fallback] : [];
 }
 
 export function submissionMemberSummary(repo: StudentRepo) {
   const names = submissionMemberNames(repo);
   if (names.length === 0) {
-    return "No members stored";
+    return repo.rosterGroupName
+      ? "Team members not imported yet"
+      : "No submitter linked yet";
   }
   if (names.length === 1) {
     return names[0];
   }
   return `${names.length} members: ${names.join(", ")}`;
+}
+
+export function submissionKindLabel(repo: StudentRepo) {
+  if (repo.members.length > 1 || repo.rosterGroupName) {
+    return "Team submission";
+  }
+  if (repo.members.length === 1 || repo.studentName || repo.studentKey) {
+    return "Individual submission";
+  }
+  return "Submission";
 }
 
 export function isGroupSubmission(repo: StudentRepo) {

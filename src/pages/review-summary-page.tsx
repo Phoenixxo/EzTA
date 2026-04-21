@@ -70,11 +70,11 @@ export function ReviewSummaryPage({
             value={repos.filter((repo) => !repo.baseSha || !repo.submissionSha).length}
           />
           <div className="rounded-none border border-zinc-300 bg-white p-4">
-            <div className="text-sm font-semibold text-zinc-900">Next recommended repo</div>
+            <div className="text-sm font-semibold text-zinc-900">Next recommended submission</div>
             <div className="mt-2 text-sm text-zinc-600">
               {unresolvedRepos[0]
                 ? `${submissionDisplayName(unresolvedRepos[0])}`
-                : "All repos are reviewed."}
+                : "All submissions are reviewed."}
             </div>
             {unresolvedRepos[0] ? (
               <Button

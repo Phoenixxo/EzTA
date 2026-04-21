@@ -96,7 +96,7 @@ export function ReviewWorkspace({ selectedRepo, editorCommand, onBack }: ReviewW
   if (!selectedRepo) {
     return (
       <div className="rounded-none border border-zinc-300 bg-white px-6 py-8 text-sm text-zinc-500">
-        Select a repository to enter review mode.
+        Select a submission to enter review mode.
       </div>
     );
   }

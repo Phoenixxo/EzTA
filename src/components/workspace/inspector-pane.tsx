@@ -9,9 +9,9 @@ import {
   NotebookPen,
 } from "lucide-react";
 import {
-  isGroupSubmission,
   shortSha,
   submissionDisplayName,
+  submissionKindLabel,
   submissionMemberSummary,
 } from "../../lib/format";
 import { openExternalLink } from "../../lib/ezta";
@@ -142,7 +142,7 @@ export function InspectorPane({
               {submissionDisplayName(selectedRepo)}
             </div>
             <div className="truncate text-xs text-zinc-500">
-              {isGroupSubmission(selectedRepo) ? "Team submission" : "Individual submission"}
+              {submissionKindLabel(selectedRepo)}
             </div>
             <div className="truncate text-xs text-zinc-500">
               {selectedRepo.repoOwner}/{selectedRepo.repoName}

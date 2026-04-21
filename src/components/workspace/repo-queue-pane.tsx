@@ -3,10 +3,10 @@ import { ChevronRight, Plus, Search } from "lucide-react";
 import type { QueueSort, RepoForm, ReviewStatusFilter, StudentRepo } from "../../types/ezta";
 import { emptyRepoForm, queueSorts, reviewStatuses } from "../../types/ezta";
 import {
-  isGroupSubmission,
   nextRepoId,
   shortSha,
   submissionDisplayName,
+  submissionKindLabel,
   submissionMemberSummary,
 } from "../../lib/format";
 import { cn } from "../../lib/utils";
@@ -177,7 +177,7 @@ export function RepoQueuePane({
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           {filteredRepos.length === 0 ? (
-            <div className="px-4 py-8 text-sm text-zinc-500">No repositories match the current filter.</div>
+            <div className="px-4 py-8 text-sm text-zinc-500">No submissions match the current filter.</div>
           ) : null}
           {filteredRepos.map((repo) => (
             <button
@@ -194,7 +194,7 @@ export function RepoQueuePane({
                   {submissionDisplayName(repo) || "Unknown"}
                 </div>
                 <div className="truncate text-xs opacity-65">
-                  {isGroupSubmission(repo) ? "Team submission" : "Individual submission"}
+                  {submissionKindLabel(repo)}
                 </div>
                 <div className="truncate text-xs opacity-65">
                   {submissionMemberSummary(repo)}
