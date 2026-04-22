@@ -757,19 +757,20 @@ pub fn list_commit_options(
         None => None,
     };
 
-    let commits_output = if let Some((ref deadline_sha, _)) = deadline_submission {
-        run_command(
+    let commits_output = match assignment.deadline_at.as_deref() {
+        Some(deadline_at) => run_command(
             "git",
             &[
-                "rev-list",
+                "log",
+                "--all",
                 "--date-order",
+                "--before",
+                deadline_at,
                 "--pretty=format:%H\t%cI\t%s",
-                deadline_sha,
             ],
             Some(&repo_path),
-        )?
-    } else {
-        run_command(
+        )?,
+        None => run_command(
             "git",
             &[
                 "log",
@@ -778,7 +779,7 @@ pub fn list_commit_options(
                 "--pretty=format:%H\t%cI\t%s",
             ],
             Some(&repo_path),
-        )?
+        )?,
     };
     let recent_commits = commits_output
         .lines()

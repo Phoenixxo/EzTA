@@ -213,6 +213,7 @@ pub fn find_deadline_submission_from_push_events(
         "gh",
         &[
             "api",
+            "--paginate",
             &format!("repos/{}/{}/events?per_page=100", repo.repo_owner, repo.repo_name),
         ],
         None,
