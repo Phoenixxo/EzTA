@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use super::db::parse_rfc3339_utc;
+use super::db::slugify;
 use super::models::{
     Assignment, ClassroomRosterRow, GhAuthenticatedUser, GhExistingReview, GhPendingReview, GhPr,
     GhPullRequestAuthor, GhPushEvent, PendingReviewComment, Submission,
@@ -141,6 +142,36 @@ pub fn ensure_local_repo(repo: &Submission) -> AppResult<()> {
     Ok(())
 }
 
+pub fn ensure_submission_worktree(repo: &Submission) -> AppResult<PathBuf> {
+    ensure_local_repo(repo)?;
+    let local_path = PathBuf::from(&repo.local_path);
+
+    let submission_sha = repo
+        .submission_sha
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| {
+            "set a submission commit before opening the repository snapshot in your editor"
+                .to_string()
+        })?;
+
+    if !commit_exists(&local_path, submission_sha) {
+        return Err(
+            "saved submission commit is not available in the local clone; reload refs and save the review target again"
+                .to_string(),
+        );
+    }
+
+    run_command(
+        "git",
+        &["checkout", "--detach", "--force", submission_sha],
+        Some(&local_path),
+    )?;
+
+    Ok(local_path)
+}
+
 pub fn fetch_all_remote_heads(repo: &Submission) -> AppResult<PathBuf> {
     ensure_local_repo(repo)?;
     let local_path = PathBuf::from(&repo.local_path);
@@ -210,12 +241,20 @@ pub fn find_deadline_submission_from_push_events(
 }
 
 pub fn apply_repo_template(assignment: &Assignment, template: &str, row: &ClassroomRosterRow) -> String {
+    let group_name = row
+        .group_name
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(slugify)
+        .unwrap_or_default();
+
     template
         .replace("{assignment_name}", assignment.name.trim())
         .replace("{identifier}", row.identifier.trim())
         .replace("{github_username}", row.github_username.trim())
         .replace("{name}", row.name.trim())
-        .replace("{group_name}", row.group_name.as_deref().unwrap_or("").trim())
+        .replace("{group_name}", &group_name)
 }
 
 pub fn should_include_roster_row(_assignment: &Assignment, _row: &ClassroomRosterRow) -> bool {

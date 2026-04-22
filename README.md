@@ -9,3 +9,7 @@ This tool was created to assist TAs in their workflow and organization of studen
 ## Contributing
 
 Please feel free to open issues with any bugs you encounter or features you'd like. As of now, this is a solo developer project, so it's easy to miss things.
+
+## Utility Scripts
+
+Helper scripts live in [scripts/README.md](/Users/phoenixxo/EzTA/scripts/README.md:1).

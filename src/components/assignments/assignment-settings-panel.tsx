@@ -36,7 +36,7 @@ export function AssignmentSettingsPanel({
   busy,
   className,
 }: AssignmentSettingsPanelProps) {
-  const templateError = validateRepoTemplate(repoTemplateInput);
+  const templateError = validateRepoTemplate(repoTemplateInput, submissionKindInput);
   const templatePreview = previewRepoTemplate(repoTemplateInput, {
     assignmentName: assignment?.name ?? "unit10",
   });
@@ -68,7 +68,7 @@ export function AssignmentSettingsPanel({
         />
         <div className="space-y-2">
           <div className="border border-zinc-300 bg-zinc-50 px-3 py-2 text-xs text-zinc-600">
-            {getRepoTemplateHelpText()}
+            {getRepoTemplateHelpText(submissionKindInput)}
           </div>
           <div className="border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-700">
             Preview: <span className="font-mono text-zinc-900">{templatePreview}</span>

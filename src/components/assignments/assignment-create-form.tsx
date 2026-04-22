@@ -23,7 +23,7 @@ export function AssignmentCreateForm({
   className,
 }: AssignmentCreateFormProps) {
   const [form, setForm] = useState<AssignmentForm>(emptyAssignmentForm);
-  const templateError = validateRepoTemplate(form.repoTemplate);
+  const templateError = validateRepoTemplate(form.repoTemplate, form.submissionKind);
   const templatePreview = previewRepoTemplate(form.repoTemplate, {
     assignmentName: form.name,
   });
@@ -97,7 +97,7 @@ export function AssignmentCreateForm({
         />
         <div className="space-y-2 md:col-span-2">
           <div className="border border-zinc-300 bg-zinc-50 px-3 py-2 text-xs text-zinc-600">
-            {getRepoTemplateHelpText()}
+            {getRepoTemplateHelpText(form.submissionKind)}
           </div>
           <div className="border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-700">
             Preview: <span className="font-mono text-zinc-900">{templatePreview}</span>

@@ -172,14 +172,18 @@ pub fn init_db(conn: &Connection) -> AppResult<()> {
             student_repos.updated_at
         FROM student_repos
         WHERE NOT EXISTS (
-            SELECT 1 FROM submissions WHERE submissions.id = student_repos.id
+            SELECT 1
+            FROM submissions
+            WHERE submissions.assignment_id = student_repos.assignment_id
+              AND submissions.repo_owner = student_repos.repo_owner
+              AND submissions.repo_name = student_repos.repo_name
         );
 
         INSERT INTO submission_members (
             submission_id, student_key, student_name, github_username, github_id, group_name, updated_at
         )
         SELECT
-            student_repos.id,
+            submissions.id,
             student_repos.student_key,
             student_repos.student_name,
             student_repos.github_username,
@@ -187,18 +191,37 @@ pub fn init_db(conn: &Connection) -> AppResult<()> {
             student_repos.roster_group_name,
             student_repos.updated_at
         FROM student_repos
+        JOIN submissions
+          ON submissions.assignment_id = student_repos.assignment_id
+         AND submissions.repo_owner = student_repos.repo_owner
+         AND submissions.repo_name = student_repos.repo_name
         WHERE NOT EXISTS (
             SELECT 1
             FROM submission_members
-            WHERE submission_members.submission_id = student_repos.id
+            WHERE submission_members.submission_id = submissions.id
               AND submission_members.student_key = student_repos.student_key
         );
 
         UPDATE draft_comments
-        SET submission_id = student_repo_id
+        SET submission_id = (
+            SELECT submissions.id
+            FROM student_repos
+            JOIN submissions
+              ON submissions.assignment_id = student_repos.assignment_id
+             AND submissions.repo_owner = student_repos.repo_owner
+             AND submissions.repo_name = student_repos.repo_name
+            WHERE student_repos.id = draft_comments.student_repo_id
+            LIMIT 1
+        )
         WHERE submission_id IS NULL
           AND EXISTS (
-              SELECT 1 FROM submissions WHERE submissions.id = draft_comments.student_repo_id
+              SELECT 1
+              FROM student_repos
+              JOIN submissions
+                ON submissions.assignment_id = student_repos.assignment_id
+               AND submissions.repo_owner = student_repos.repo_owner
+               AND submissions.repo_name = student_repos.repo_name
+              WHERE student_repos.id = draft_comments.student_repo_id
           );
         ",
     )

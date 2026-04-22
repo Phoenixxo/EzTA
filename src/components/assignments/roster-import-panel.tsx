@@ -28,6 +28,7 @@ export function RosterImportPanel({
   className,
 }: RosterImportPanelProps) {
   const [rosterFileName, setRosterFileName] = useState("");
+  const [rosterFileError, setRosterFileError] = useState("");
   const rosterFileInputRef = useRef<HTMLInputElement | null>(null);
 
   async function handleRosterFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -35,7 +36,16 @@ export function RosterImportPanel({
     if (!file) {
       return;
     }
+    const normalizedName = file.name.trim().toLowerCase();
+    if (!normalizedName.endsWith(".csv")) {
+      setRosterFileName("");
+      setRosterFileError("Only .csv roster files are supported.");
+      event.currentTarget.value = "";
+      return;
+    }
+
     const content = await file.text();
+    setRosterFileError("");
     setRosterFileName(file.name);
     onRosterInputChange(content);
     event.currentTarget.value = "";
@@ -101,6 +111,11 @@ export function RosterImportPanel({
         {rosterFileName ? (
           <div className="rounded-none border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600">
             Loaded file: {rosterFileName}
+          </div>
+        ) : null}
+        {rosterFileError ? (
+          <div className="rounded-none border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-700">
+            {rosterFileError}
           </div>
         ) : null}
         <div className="border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-700">
