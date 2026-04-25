@@ -1,5 +1,5 @@
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
-import type { CommitOptions, StudentRepo } from "../types/ezta";
+import type { CommitOptions, StudentRepo, SubmissionKind } from "../types/ezta";
 import { submissionDisplayName } from "../lib/format";
 import { Breadcrumbs } from "../components/navigation/breadcrumbs";
 import { Button } from "../components/ui/button";
@@ -7,6 +7,7 @@ import { InspectorPane } from "../components/workspace/inspector-pane";
 
 type StudentReviewPageProps = {
   assignmentName: string | null;
+  assignmentSubmissionKind: SubmissionKind | null;
   selectedRepo: StudentRepo | null;
   filteredRepoCount: number;
   selectedPosition: number;
@@ -41,6 +42,7 @@ type StudentReviewPageProps = {
 
 export function StudentReviewPage({
   assignmentName,
+  assignmentSubmissionKind,
   selectedRepo,
   filteredRepoCount,
   selectedPosition,
@@ -78,7 +80,11 @@ export function StudentReviewPage({
         items={[
           { label: "Assignments", onClick: onOpenAssignments },
           { label: assignmentName ?? "Assignment", onClick: onOpenDashboard },
-          { label: selectedRepo ? submissionDisplayName(selectedRepo) : "Submission Review" },
+          {
+            label: selectedRepo
+              ? submissionDisplayName(selectedRepo, assignmentSubmissionKind)
+              : "Submission Review",
+          },
         ]}
       />
 
@@ -103,6 +109,7 @@ export function StudentReviewPage({
       <div className="min-h-0 flex-1 overflow-hidden">
         <InspectorPane
           selectedRepo={selectedRepo}
+          selectedAssignmentSubmissionKind={assignmentSubmissionKind}
           selectedAssignmentDeadline={selectedAssignmentDeadline}
           filteredRepoCount={filteredRepoCount}
           selectedPosition={selectedPosition}

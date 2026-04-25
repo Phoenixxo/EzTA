@@ -27,6 +27,7 @@ import type {
 export function useAppSettings() {
   const [editorAppInput, setEditorAppInput] = useState<EditorPreference>("system");
   const [editorApplicationPathInput, setEditorApplicationPathInput] = useState("");
+  const [editorPreferenceLoaded, setEditorPreferenceLoaded] = useState(false);
   const [appUpdaterOverview, setAppUpdaterOverview] = useState<AppUpdaterOverview | null>(null);
   const [appUpdateResult, setAppUpdateResult] = useState<AppUpdateCheckResult | null>(null);
   const [appUpdateMessage, setAppUpdateMessage] = useState("");
@@ -49,6 +50,7 @@ export function useAppSettings() {
       setEditorAppInput(storedPreference.app);
     }
     setEditorApplicationPathInput(storedPreference.applicationPath);
+    setEditorPreferenceLoaded(true);
     const resetNotice = consumeFrontendStateResetNotice();
     if (resetNotice) {
       setUpgradeRecoveryMessage(resetNotice);
@@ -56,8 +58,11 @@ export function useAppSettings() {
   }, []);
 
   useEffect(() => {
+    if (!editorPreferenceLoaded) {
+      return;
+    }
     writeStoredEditorPreference(editorAppInput, editorApplicationPathInput);
-  }, [editorAppInput, editorApplicationPathInput]);
+  }, [editorAppInput, editorApplicationPathInput, editorPreferenceLoaded]);
 
   useEffect(() => {
     function handleStorage(event: StorageEvent) {

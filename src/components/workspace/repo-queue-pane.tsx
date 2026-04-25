@@ -1,6 +1,12 @@
 import { FormEvent, useState } from "react";
 import { ChevronRight, Plus, Search } from "lucide-react";
-import type { QueueSort, RepoForm, ReviewStatusFilter, StudentRepo } from "../../types/ezta";
+import type {
+  QueueSort,
+  RepoForm,
+  ReviewStatusFilter,
+  StudentRepo,
+  SubmissionKind,
+} from "../../types/ezta";
 import { emptyRepoForm, queueSorts, reviewStatuses } from "../../types/ezta";
 import {
   nextRepoId,
@@ -17,6 +23,7 @@ import { StatusBadge } from "./status-badge";
 
 type RepoQueuePaneProps = {
   selectedAssignmentName: string | null;
+  selectedAssignmentSubmissionKind: SubmissionKind | null;
   filteredRepos: StudentRepo[];
   selectedRepoId: number | null;
   onSelectRepo: (id: number | null) => void;
@@ -33,6 +40,7 @@ type RepoQueuePaneProps = {
 
 export function RepoQueuePane({
   selectedAssignmentName,
+  selectedAssignmentSubmissionKind,
   filteredRepos,
   selectedRepoId,
   onSelectRepo,
@@ -191,10 +199,13 @@ export function RepoQueuePane({
             >
               <div className="min-w-0">
                 <div className="truncate font-medium">
-                  {submissionDisplayName(repo) || "Unknown"}
+                  {submissionDisplayName(
+                    repo,
+                    selectedAssignmentSubmissionKind,
+                  ) || "Unknown"}
                 </div>
                 <div className="truncate text-xs opacity-65">
-                  {submissionKindLabel(repo)}
+                  {submissionKindLabel(repo, selectedAssignmentSubmissionKind)}
                 </div>
                 <div className="truncate text-xs opacity-65">
                   {submissionMemberSummary(repo)}

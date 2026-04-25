@@ -1,4 +1,9 @@
-import type { QueueSort, ReviewStatusFilter, StudentRepo } from "../types/ezta";
+import type {
+  QueueSort,
+  ReviewStatusFilter,
+  StudentRepo,
+  SubmissionKind,
+} from "../types/ezta";
 import { submissionDisplayName, submissionMemberSummary } from "./format";
 
 export function filterAndSortRepos(
@@ -6,6 +11,7 @@ export function filterAndSortRepos(
   statusFilter: ReviewStatusFilter,
   repoQuery: string,
   queueSort: QueueSort,
+  assignmentSubmissionKind?: SubmissionKind | null,
 ) {
   const matchingRepos = repos.filter((repo) => {
     const matchesStatus = statusFilter === "all" || repo.reviewStatus === statusFilter;
@@ -21,7 +27,7 @@ export function filterAndSortRepos(
       repo.repoName,
       repo.githubUsername ?? "",
       repo.githubId ?? "",
-      submissionDisplayName(repo),
+      submissionDisplayName(repo, assignmentSubmissionKind),
       submissionMemberSummary(repo),
       ...repo.members.map((member) =>
         [member.studentKey, member.studentName, member.githubUsername ?? "", member.githubId ?? ""]
@@ -42,15 +48,15 @@ export function filterAndSortRepos(
           `${right.repoOwner}/${right.repoName}`,
         );
       case "status":
-        return `${left.reviewStatus}:${submissionDisplayName(left)}:${left.repoName}`.localeCompare(
-          `${right.reviewStatus}:${submissionDisplayName(right)}:${right.repoName}`,
+        return `${left.reviewStatus}:${submissionDisplayName(left, assignmentSubmissionKind)}:${left.repoName}`.localeCompare(
+          `${right.reviewStatus}:${submissionDisplayName(right, assignmentSubmissionKind)}:${right.repoName}`,
         );
       case "updated":
         return (right.updatedAt ?? 0) - (left.updatedAt ?? 0);
       case "student":
       default:
-        return `${submissionDisplayName(left)}:${left.repoName}`.localeCompare(
-          `${submissionDisplayName(right)}:${right.repoName}`,
+        return `${submissionDisplayName(left, assignmentSubmissionKind)}:${left.repoName}`.localeCompare(
+          `${submissionDisplayName(right, assignmentSubmissionKind)}:${right.repoName}`,
         );
     }
   });

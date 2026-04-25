@@ -55,6 +55,7 @@ export function useEztaWorkspace() {
   const [repoTemplateInput, setRepoTemplateInput] = useState("");
   const [editorAppInput, setEditorAppInput] = useState<EditorPreference>("system");
   const [editorApplicationPathInput, setEditorApplicationPathInput] = useState("");
+  const [editorPreferenceLoaded, setEditorPreferenceLoaded] = useState(false);
   const [rosterInput, setRosterInput] = useState("");
   const [notesInput, setNotesInput] = useState("");
   const [statusInput, setStatusInput] = useState("not_started");
@@ -74,8 +75,15 @@ export function useEztaWorkspace() {
   const selectedRepo = repos.find((repo) => repo.id === selectedRepoId) ?? null;
 
   const filteredRepos = useMemo(
-    () => filterAndSortRepos(repos, statusFilter, repoQuery, queueSort),
-    [queueSort, repoQuery, repos, statusFilter],
+    () =>
+      filterAndSortRepos(
+        repos,
+        statusFilter,
+        repoQuery,
+        queueSort,
+        selectedAssignment?.submissionKind ?? null,
+      ),
+    [queueSort, repoQuery, repos, selectedAssignment?.submissionKind, statusFilter],
   );
 
   const resolvedEditorApplication = useMemo(
@@ -95,6 +103,7 @@ export function useEztaWorkspace() {
       setEditorAppInput(app);
     }
     setEditorApplicationPathInput(applicationPath);
+    setEditorPreferenceLoaded(true);
     if (storedWorkspaceSelection.assignmentId) {
       setSelectedAssignmentId(storedWorkspaceSelection.assignmentId);
     }
@@ -113,8 +122,11 @@ export function useEztaWorkspace() {
   }, []);
 
   useEffect(() => {
+    if (!editorPreferenceLoaded) {
+      return;
+    }
     writeStoredEditorPreference(editorAppInput, editorApplicationPathInput);
-  }, [editorAppInput, editorApplicationPathInput]);
+  }, [editorAppInput, editorApplicationPathInput, editorPreferenceLoaded]);
 
   useEffect(() => {
     writeStoredSelectedAssignmentId(selectedAssignmentId);

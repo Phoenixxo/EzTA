@@ -314,6 +314,9 @@ export function WorkspacePage() {
         return (
           <StudentReviewPage
             assignmentName={workspace.selectedAssignment?.name ?? null}
+            assignmentSubmissionKind={
+              workspace.selectedAssignment?.submissionKind ?? null
+            }
             selectedRepo={workspace.selectedRepo}
             filteredRepoCount={workspace.filteredRepos.length}
             selectedPosition={selectedPosition >= 0 ? selectedPosition + 1 : 0}
@@ -388,6 +391,9 @@ export function WorkspacePage() {
         return (
           <ReviewWorkspace
             selectedRepo={workspace.selectedRepo}
+            assignmentSubmissionKind={
+              workspace.selectedAssignment?.submissionKind ?? null
+            }
             editorCommand={workspace.resolvedEditorApplication}
             onBack={() =>
               setRoute({

@@ -112,6 +112,7 @@ export function AssignmentDashboardPage({
         {tab === "queue" ? (
           <RepoQueuePane
             selectedAssignmentName={assignment?.name ?? null}
+            selectedAssignmentSubmissionKind={assignment?.submissionKind ?? null}
             filteredRepos={filteredRepos}
             selectedRepoId={selectedRepoId}
             onSelectRepo={(repoId) => {

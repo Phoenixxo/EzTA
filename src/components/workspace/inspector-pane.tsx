@@ -16,7 +16,7 @@ import {
 } from "../../lib/format";
 import { openExternalLink } from "../../lib/ezta";
 import { cn } from "../../lib/utils";
-import type { CommitOptions, StudentRepo } from "../../types/ezta";
+import type { CommitOptions, StudentRepo, SubmissionKind } from "../../types/ezta";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
@@ -25,6 +25,7 @@ import { StatusBadge } from "./status-badge";
 
 type InspectorPaneProps = {
   selectedRepo: StudentRepo | null;
+  selectedAssignmentSubmissionKind: SubmissionKind | null;
   selectedAssignmentDeadline: string | null;
   filteredRepoCount: number;
   selectedPosition: number;
@@ -54,6 +55,7 @@ const inspectorTabs = ["commits", "notes", "actions", "revisions"] as const;
 
 export function InspectorPane({
   selectedRepo,
+  selectedAssignmentSubmissionKind,
   selectedAssignmentDeadline,
   filteredRepoCount,
   selectedPosition,
@@ -139,10 +141,16 @@ export function InspectorPane({
         <>
           <div className="border-b border-zinc-300 bg-white px-4 py-3">
             <div className="truncate text-sm font-semibold text-zinc-900">
-              {submissionDisplayName(selectedRepo)}
+              {submissionDisplayName(
+                selectedRepo,
+                selectedAssignmentSubmissionKind,
+              )}
             </div>
             <div className="truncate text-xs text-zinc-500">
-              {submissionKindLabel(selectedRepo)}
+              {submissionKindLabel(
+                selectedRepo,
+                selectedAssignmentSubmissionKind,
+              )}
             </div>
             <div className="truncate text-xs text-zinc-500">
               {selectedRepo.repoOwner}/{selectedRepo.repoName}

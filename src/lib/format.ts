@@ -1,14 +1,25 @@
-import type { StudentRepo } from "../types/ezta";
+import type { StudentRepo, SubmissionKind } from "../types/ezta";
 
 export function shortSha(value: string | null) {
   return value ? value.slice(0, 10) : "Unset";
 }
 
-export function submissionDisplayName(repo: StudentRepo) {
+export function submissionDisplayName(
+  repo: StudentRepo,
+  assignmentSubmissionKind?: SubmissionKind | null,
+) {
+  if (assignmentSubmissionKind === "group") {
+    return (
+      repo.rosterGroupName?.trim() ||
+      repo.studentName ||
+      repo.studentKey ||
+      repo.repoName
+    );
+  }
   return (
-    repo.rosterGroupName?.trim() ||
     repo.studentName ||
     repo.studentKey ||
+    repo.rosterGroupName?.trim() ||
     repo.repoName
   );
 }
@@ -41,7 +52,16 @@ export function submissionMemberSummary(repo: StudentRepo) {
   return `${names.length} members: ${names.join(", ")}`;
 }
 
-export function submissionKindLabel(repo: StudentRepo) {
+export function submissionKindLabel(
+  repo: StudentRepo,
+  assignmentSubmissionKind?: SubmissionKind | null,
+) {
+  if (assignmentSubmissionKind === "group") {
+    return "Team submission";
+  }
+  if (assignmentSubmissionKind === "individual") {
+    return "Individual submission";
+  }
   if (repo.members.length > 1 || repo.rosterGroupName) {
     return "Team submission";
   }

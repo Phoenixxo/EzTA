@@ -47,7 +47,7 @@ export function ReviewSummaryPage({
               >
                 <div className="min-w-0">
                   <div className="truncate text-sm font-medium text-zinc-900">
-                    {submissionDisplayName(repo)}
+                    {submissionDisplayName(repo, assignment?.submissionKind)}
                   </div>
                   <div className="truncate text-xs text-zinc-500">
                     {repo.repoOwner}/{repo.repoName}
@@ -73,7 +73,10 @@ export function ReviewSummaryPage({
             <div className="text-sm font-semibold text-zinc-900">Next recommended submission</div>
             <div className="mt-2 text-sm text-zinc-600">
               {unresolvedRepos[0]
-                ? `${submissionDisplayName(unresolvedRepos[0])}`
+                ? `${submissionDisplayName(
+                    unresolvedRepos[0],
+                    assignment?.submissionKind,
+                  )}`
                 : "All submissions are reviewed."}
             </div>
             {unresolvedRepos[0] ? (

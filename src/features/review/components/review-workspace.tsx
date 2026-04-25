@@ -12,7 +12,11 @@ import {
 } from "lucide-react";
 import { submissionDisplayName, submissionMemberSummary } from "../../../lib/format";
 import { cn } from "../../../lib/utils";
-import type { DraftComment, StudentRepo } from "../../../types/ezta";
+import type {
+  DraftComment,
+  StudentRepo,
+  SubmissionKind,
+} from "../../../types/ezta";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
@@ -26,11 +30,17 @@ import { basename, dirname, groupChangedFiles, lineToneClass } from "../lib/diff
 
 type ReviewWorkspaceProps = {
   selectedRepo: StudentRepo | null;
+  assignmentSubmissionKind: SubmissionKind | null;
   editorCommand: string;
   onBack: () => void;
 };
 
-export function ReviewWorkspace({ selectedRepo, editorCommand, onBack }: ReviewWorkspaceProps) {
+export function ReviewWorkspace({
+  selectedRepo,
+  assignmentSubmissionKind,
+  editorCommand,
+  onBack,
+}: ReviewWorkspaceProps) {
   const [viewMode, setViewMode] = useState<"diff" | "source">("diff");
   const [sourceSide, setSourceSide] = useState<"base" | "submission">("submission");
   const [editorError, setEditorError] = useState("");
@@ -181,7 +191,10 @@ export function ReviewWorkspace({ selectedRepo, editorCommand, onBack }: ReviewW
 
       <PanelShell
         title={review.selectedPath ?? "File viewer"}
-        subtitle={`${submissionDisplayName(selectedRepo)} · ${selectedRepo.repoName}`}
+        subtitle={`${submissionDisplayName(
+          selectedRepo,
+          assignmentSubmissionKind,
+        )} · ${selectedRepo.repoName}`}
         actions={
           <div className="flex items-center gap-2">
             {selectedRepo.prUrl ? (

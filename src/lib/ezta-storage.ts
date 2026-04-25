@@ -17,8 +17,6 @@ export const eztaStorageKeys = {
 } as const;
 
 const versionSensitiveStorageKeys = [
-  eztaStorageKeys.editorApp,
-  eztaStorageKeys.editorApplicationPath,
   eztaStorageKeys.route,
   eztaStorageKeys.selectedAssignmentId,
   eztaStorageKeys.selectedRepoId,
@@ -50,7 +48,7 @@ export function ensureFrontendStateCompatibility() {
   if (storedVersion !== null) {
     window.localStorage.setItem(
       eztaStorageKeys.frontendStateResetNotice,
-      "EzTA reset saved UI state after an app upgrade to avoid incompatible startup data.",
+      "EzTA reset saved navigation and queue state after an app upgrade to avoid incompatible startup data.",
     );
   }
   window.localStorage.setItem(
