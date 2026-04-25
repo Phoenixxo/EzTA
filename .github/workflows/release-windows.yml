@@ -50,6 +50,6 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: EzTA ${{ github.ref_name }}
-          releaseBody: Automated Windows release for ${{ github.ref_name }}.
+          releaseBody: "Release notes: https://github.com/Phoenixxo/EzTA/releases/tag/${{ github.ref_name }}"
           releaseDraft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
