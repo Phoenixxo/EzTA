@@ -33,11 +33,54 @@ pub fn header_index(headers: &csv::StringRecord, aliases: &[&str]) -> Option<usi
     })
 }
 
+fn trim_roster_field(value: &str) -> String {
+    let trimmed = value.trim();
+    let quote_pairs = [('"', '"'), ('\u{201c}', '\u{201d}'), ('\u{201d}', '\u{201d}')];
+    for (open, close) in quote_pairs {
+        if trimmed.starts_with(open) && trimmed.ends_with(close) && trimmed.len() >= 2 {
+            return trimmed
+                .trim_start_matches(open)
+                .trim_end_matches(close)
+                .trim()
+                .to_string();
+        }
+    }
+    trimmed
+        .trim_matches(|ch| ch == '"' || ch == '\\' || ch == '\u{201c}' || ch == '\u{201d}')
+        .trim()
+        .to_string()
+}
+
+fn normalize_roster_csv_content(value: &str) -> String {
+    value
+        .replace("\\\"", "\"")
+        .replace('\u{201c}', "\"")
+        .replace('\u{201d}', "\"")
+}
+
+fn repaired_roster_record(record: &csv::StringRecord, expected_columns: usize) -> Vec<String> {
+    let values: Vec<String> = record.iter().map(trim_roster_field).collect();
+    if expected_columns == 0 || values.len() <= expected_columns {
+        return values;
+    }
+
+    let overflow = values.len() - expected_columns;
+    let mut repaired = Vec::with_capacity(expected_columns);
+    repaired.push(trim_roster_field(&values[..=overflow].join(", ")));
+    repaired.extend(values[(overflow + 1)..].iter().cloned());
+    repaired
+}
+
+fn roster_value(record: &[String], index: usize) -> &str {
+    record.get(index).map(String::as_str).unwrap_or("")
+}
+
 pub fn parse_classroom_roster_rows(csv_content: &str) -> AppResult<Vec<ClassroomRosterRow>> {
+    let normalized_csv_content = normalize_roster_csv_content(csv_content);
     let mut reader = ReaderBuilder::new()
         .trim(Trim::All)
         .flexible(true)
-        .from_reader(csv_content.as_bytes());
+        .from_reader(normalized_csv_content.as_bytes());
     let headers = reader
         .headers()
         .map_err(|err| format!("invalid roster CSV header: {}", err))?
@@ -58,18 +101,17 @@ pub fn parse_classroom_roster_rows(csv_content: &str) -> AppResult<Vec<Classroom
     let mut rows = Vec::new();
     for record in reader.records() {
         let record = record.map_err(|err| format!("invalid roster CSV row: {}", err))?;
+        let record = repaired_roster_record(&record, headers.len());
         let row = ClassroomRosterRow {
-            identifier: record.get(identifier_idx).unwrap_or("").trim().to_string(),
-            github_username: record.get(github_username_idx).unwrap_or("").trim().to_string(),
+            identifier: roster_value(&record, identifier_idx).to_string(),
+            github_username: roster_value(&record, github_username_idx).to_string(),
             github_id: github_id_idx
-                .and_then(|index| record.get(index))
-                .map(str::trim)
+                .map(|index| roster_value(&record, index))
                 .filter(|value| !value.is_empty())
                 .map(ToOwned::to_owned),
-            name: record.get(name_idx).unwrap_or("").trim().to_string(),
+            name: roster_value(&record, name_idx).to_string(),
             group_name: group_name_idx
-                .and_then(|index| record.get(index))
-                .map(str::trim)
+                .map(|index| roster_value(&record, index))
                 .filter(|value| !value.is_empty())
                 .map(ToOwned::to_owned),
         };
@@ -77,6 +119,71 @@ pub fn parse_classroom_roster_rows(csv_content: &str) -> AppResult<Vec<Classroom
     }
 
     Ok(rows)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_classroom_roster_rows;
+
+    #[test]
+    fn parses_quoted_identifier_with_comma() {
+        let rows = parse_classroom_roster_rows(
+            "identifier,github_username,github_id,name,group_name\n\
+             \"Lab 01, Student Alpha\",alpha-user-1,900000001,Alex Example,DemoSection\n",
+        )
+        .expect("roster should parse");
+
+        assert_eq!(rows[0].identifier, "Lab 01, Student Alpha");
+        assert_eq!(rows[0].github_username, "alpha-user-1");
+        assert_eq!(rows[0].github_id.as_deref(), Some("900000001"));
+        assert_eq!(rows[0].name, "Alex Example");
+        assert_eq!(rows[0].group_name.as_deref(), Some("DemoSection"));
+    }
+
+    #[test]
+    fn repairs_unrecognized_quoted_identifier_split_by_comma() {
+        let rows = parse_classroom_roster_rows(
+            "identifier,github_username,github_id,name,group_name\n\
+             “Lab 02, Student Beta”,beta-user-2,900000002,,DemoSection\n",
+        )
+        .expect("roster should parse");
+
+        assert_eq!(rows[0].identifier, "Lab 02, Student Beta");
+        assert_eq!(rows[0].github_username, "beta-user-2");
+        assert_eq!(rows[0].github_id.as_deref(), Some("900000002"));
+        assert_eq!(rows[0].name, "");
+        assert_eq!(rows[0].group_name.as_deref(), Some("DemoSection"));
+    }
+
+    #[test]
+    fn repairs_escaped_quotes_around_identifier() {
+        let rows = parse_classroom_roster_rows(
+            "identifier,github_username,github_id,name,group_name\n\
+             \\\"Lab 03, Student Gamma\\\",gamma-user-3,900000003,Gray Example,DemoSection\n",
+        )
+        .expect("roster should parse");
+
+        assert_eq!(rows[0].identifier, "Lab 03, Student Gamma");
+        assert_eq!(rows[0].github_username, "gamma-user-3");
+        assert_eq!(rows[0].github_id.as_deref(), Some("900000003"));
+        assert_eq!(rows[0].name, "Gray Example");
+        assert_eq!(rows[0].group_name.as_deref(), Some("DemoSection"));
+    }
+
+    #[test]
+    fn repairs_dangling_quote_after_split_identifier() {
+        let rows = parse_classroom_roster_rows(
+            "identifier,github_username,github_id,name,group_name\n\
+             Lab 04, Student Delta\\\",delta-user-4,900000004,Drew Example,DemoSection\n",
+        )
+        .expect("roster should parse");
+
+        assert_eq!(rows[0].identifier, "Lab 04, Student Delta");
+        assert_eq!(rows[0].github_username, "delta-user-4");
+        assert_eq!(rows[0].github_id.as_deref(), Some("900000004"));
+        assert_eq!(rows[0].name, "Drew Example");
+        assert_eq!(rows[0].group_name.as_deref(), Some("DemoSection"));
+    }
 }
 
 pub fn fetch_org_repos_from_gh(github_org: &str) -> AppResult<Vec<GhApiRepo>> {
