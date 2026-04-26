@@ -1,4 +1,5 @@
 use rusqlite::params;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::PathBuf;
 
@@ -468,6 +469,7 @@ pub fn import_classroom_roster(
     let mut skipped_empty_repo_name = 0usize;
     let mut skipped_missing_group_name = 0usize;
     let rows = parse_classroom_roster_rows(&input.csv_content)?;
+    let mut imported_members_by_submission: HashMap<i64, HashSet<String>> = HashMap::new();
 
     for row in rows {
         if row.github_username.trim().is_empty() || row.identifier.trim().is_empty() {
@@ -505,6 +507,11 @@ pub fn import_classroom_roster(
             assignment.github_org.trim(),
             repo_name.trim()
         );
+        let roster_group_name = if assignment.submission_kind == "group" {
+            row.group_name.as_deref().map(str::trim)
+        } else {
+            None
+        };
 
         conn.execute(
             "INSERT INTO student_repos (
@@ -527,7 +534,7 @@ pub fn import_classroom_roster(
                 row.name.trim(),
                 row.github_username.trim(),
                 row.github_id.as_deref().map(str::trim),
-                row.group_name.as_deref().map(str::trim),
+                roster_group_name,
                 assignment.github_org.trim(),
                 repo_name.trim(),
                 repo_url,
@@ -570,10 +577,41 @@ pub fn import_classroom_roster(
             row.name.trim(),
             Some(row.github_username.trim()),
             row.github_id.as_deref().map(str::trim),
-            row.group_name.as_deref().map(str::trim),
+            roster_group_name,
             now,
         )?;
+        imported_members_by_submission
+            .entry(submission_id)
+            .or_default()
+            .insert(row.identifier.trim().to_string());
         imported_count += 1;
+    }
+
+    if assignment.submission_kind == "individual" {
+        for (submission_id, imported_member_keys) in imported_members_by_submission {
+            let mut stmt = conn
+                .prepare("SELECT student_key FROM submission_members WHERE submission_id = ?1")
+                .map_err(|err| err.to_string())?;
+            let rows = stmt
+                .query_map([submission_id], |row| row.get::<_, String>(0))
+                .map_err(|err| err.to_string())?;
+            let mut stale_member_keys = Vec::new();
+            for row in rows {
+                let student_key = row.map_err(|err| err.to_string())?;
+                if !imported_member_keys.contains(student_key.trim()) {
+                    stale_member_keys.push(student_key);
+                }
+            }
+            drop(stmt);
+
+            for stale_member_key in stale_member_keys {
+                conn.execute(
+                    "DELETE FROM submission_members WHERE submission_id = ?1 AND student_key = ?2",
+                    params![submission_id, stale_member_key],
+                )
+                .map_err(|err| err.to_string())?;
+            }
+        }
     }
 
     update_assignment_timestamp(conn, input.assignment_id, now)?;
