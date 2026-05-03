@@ -3,9 +3,9 @@ import { Badge } from "../ui/badge";
 export function StatusBadge({ status }: { status: string }) {
   const variant =
     status === "prepared"
-      ? "success"
+      ? "info"
       : status === "reviewed"
-        ? "warning"
+        ? "success"
         : status === "error"
           ? "danger"
           : "neutral";

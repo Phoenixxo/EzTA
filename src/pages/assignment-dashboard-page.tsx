@@ -3,7 +3,6 @@ import type {
   ReviewStatusFilter,
   StudentRepo,
 } from "../types/ezta";
-import { Breadcrumbs } from "../components/navigation/breadcrumbs";
 import { FileTabs } from "../components/navigation/file-tabs";
 import { RepoQueuePane } from "../components/workspace/repo-queue-pane";
 import { AssignmentSettingsPanel } from "../components/assignments/assignment-settings-panel";
@@ -15,7 +14,6 @@ type DashboardTab = "queue" | "import" | "settings" | "overview";
 
 type AssignmentDashboardPageProps = {
   assignment: Assignment | null;
-  assignments: Assignment[];
   tab: DashboardTab;
   onTabChange: (tab: DashboardTab) => void;
   repos: StudentRepo[];
@@ -23,7 +21,6 @@ type AssignmentDashboardPageProps = {
   selectedRepoId: number | null;
   onSelectRepo: (repoId: number | null) => void;
   onOpenStudent: (repoId: number) => void;
-  onOpenAssignments: () => void;
   onOpenSummary: () => void;
   onAddRepo: (form: {
     studentKey: string;
@@ -62,7 +59,6 @@ const dashboardTabs: DashboardTab[] = [
 
 export function AssignmentDashboardPage({
   assignment,
-  assignments,
   tab,
   onTabChange,
   repos,
@@ -70,7 +66,6 @@ export function AssignmentDashboardPage({
   selectedRepoId,
   onSelectRepo,
   onOpenStudent,
-  onOpenAssignments,
   onOpenSummary,
   onAddRepo,
   statusFilter,
@@ -94,14 +89,7 @@ export function AssignmentDashboardPage({
   busy,
 }: AssignmentDashboardPageProps) {
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
-      <Breadcrumbs
-        items={[
-          { label: "Assignments", onClick: onOpenAssignments },
-          { label: assignment?.name ?? "Assignment Dashboard" },
-        ]}
-      />
-
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <FileTabs
           tabs={dashboardTabs}
@@ -112,7 +100,9 @@ export function AssignmentDashboardPage({
         {tab === "queue" ? (
           <RepoQueuePane
             selectedAssignmentName={assignment?.name ?? null}
-            selectedAssignmentSubmissionKind={assignment?.submissionKind ?? null}
+            selectedAssignmentSubmissionKind={
+              assignment?.submissionKind ?? null
+            }
             filteredRepos={filteredRepos}
             selectedRepoId={selectedRepoId}
             onSelectRepo={(repoId) => {
@@ -171,13 +161,6 @@ export function AssignmentDashboardPage({
             className="h-full min-h-0 rounded-t-none border-t-0"
           />
         ) : null}
-      </div>
-
-      <div className="rounded-none border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-600">
-        Active assignments:{" "}
-        <span className="font-semibold text-zinc-900">
-          {assignments.length}
-        </span>
       </div>
     </div>
   );

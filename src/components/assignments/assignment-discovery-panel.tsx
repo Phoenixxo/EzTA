@@ -173,7 +173,7 @@ export function AssignmentDiscoveryPanel({
             value={githubOrg}
             onChange={(event) => setGithubOrg(event.currentTarget.value)}
             placeholder="GitHub org"
-            className="h-10 rounded-none"
+            className="h-10"
           />
           <Button
             type="button"
@@ -206,28 +206,28 @@ export function AssignmentDiscoveryPanel({
         </div>
 
         {indexStatus ? (
-          <div className="rounded-none border border-zinc-300 bg-zinc-50 px-3 py-3 text-sm text-zinc-700">
+          <div className="rounded-md border border-stone-200 bg-stone-50 px-3 py-3 text-sm text-stone-700">
             Indexed {indexStatus.repoCount} repos for {indexStatus.githubOrg}.
           </div>
         ) : null}
 
         {discovering ? (
-          <div className="rounded-none border border-amber-300 bg-amber-50 px-3 py-3 text-sm text-amber-900">
+          <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-3 text-sm text-amber-900">
             Reading cached org index and grouping repos into units...
           </div>
         ) : null}
 
         {error ? (
-          <div className="rounded-none border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <div className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </div>
         ) : null}
 
         <div className="grid min-h-0 flex-1 gap-4 overflow-hidden xl:grid-cols-[minmax(280px,0.85fr)_minmax(0,1.15fr)]">
-          <div className="flex min-h-0 flex-col gap-2 overflow-hidden rounded-none border border-zinc-300 bg-[#fbfbfa] p-3">
-            <div className="sticky top-0 z-10 bg-[#fbfbfa] pb-2">
+          <div className="flex min-h-0 flex-col gap-2 overflow-hidden rounded-lg border border-stone-200 bg-stone-50 p-3">
+            <div className="sticky top-0 z-10 bg-stone-50 pb-2">
               <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
                 <Input
                   value={groupSearch}
                   onChange={(event) => {
@@ -235,13 +235,13 @@ export function AssignmentDiscoveryPanel({
                     setGroupPage(1);
                   }}
                   placeholder="Search groups"
-                  className="h-10 rounded-none pl-10"
+                  className="h-10 pl-10"
                 />
               </div>
             </div>
 
             {!filteredGroups.length ? (
-              <div className="rounded-none border border-dashed border-zinc-300 bg-white px-3 py-4 text-sm text-zinc-500">
+              <div className="rounded-md border border-dashed border-stone-200 bg-white px-3 py-4 text-sm text-stone-500">
                 {groups.length === 0
                   ? "No groups loaded yet."
                   : "No groups match that search."}
@@ -252,17 +252,17 @@ export function AssignmentDiscoveryPanel({
               {paginatedGroups.map((group) => (
                 <div
                   key={`${group.githubOrg}-${group.groupKey}`}
-                  className="rounded-none border border-zinc-300 bg-[#fbfbfa] p-3"
+                  className="rounded-md border border-stone-200 bg-white p-3"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-zinc-900">
+                      <div className="truncate text-sm font-semibold text-stone-900">
                         {group.groupKey}
                       </div>
-                      <div className="truncate text-xs text-zinc-500">
+                      <div className="truncate text-xs text-stone-500">
                         {group.repoCount} repos
                       </div>
-                      <div className="mt-1 text-xs text-zinc-600">
+                      <div className="mt-1 text-xs text-stone-600">
                         Examples: {group.examples.join(", ")}
                       </div>
                     </div>
@@ -304,8 +304,8 @@ export function AssignmentDiscoveryPanel({
             </div>
 
             {filteredGroups.length > groupsPerPage ? (
-              <div className="flex items-center justify-between gap-3 border-t border-zinc-300 bg-[#fbfbfa] pt-3">
-                <div className="text-xs text-zinc-500">
+              <div className="flex items-center justify-between gap-3 border-t border-stone-200 bg-stone-50 pt-3">
+                <div className="text-xs text-stone-500">
                   Page {safeGroupPage} of {totalGroupPages}
                 </div>
                 <div className="flex gap-2">
@@ -313,7 +313,9 @@ export function AssignmentDiscoveryPanel({
                     type="button"
                     size="sm"
                     variant="outline"
-                    onClick={() => setGroupPage((current) => Math.max(1, current - 1))}
+                    onClick={() =>
+                      setGroupPage((current) => Math.max(1, current - 1))
+                    }
                     disabled={safeGroupPage <= 1}
                   >
                     Previous
@@ -336,12 +338,12 @@ export function AssignmentDiscoveryPanel({
             ) : null}
           </div>
 
-          <div className="flex min-h-0 flex-col overflow-hidden rounded-none border border-zinc-300 bg-[#fbfbfa]">
-            <div className="border-b border-zinc-300 px-4 py-3">
-              <div className="text-sm font-semibold text-zinc-900">
+          <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-stone-200 bg-white">
+            <div className="border-b border-stone-200 px-4 py-3">
+              <div className="text-sm font-semibold text-stone-900">
                 {selectedGroupKey ? `${selectedGroupKey} repos` : "Group repos"}
               </div>
-              <div className="text-xs text-zinc-500">
+              <div className="text-xs text-stone-500">
                 {selectedGroupKey
                   ? `${groupRepos.length} repos loaded for the selected group`
                   : "Select a group to load its repos"}
@@ -349,17 +351,17 @@ export function AssignmentDiscoveryPanel({
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-3">
               {loadingRepos ? (
-                <div className="rounded-none border border-zinc-200 bg-white px-3 py-4 text-sm text-zinc-500">
+                <div className="rounded-md border border-stone-200 bg-stone-50 px-3 py-4 text-sm text-stone-500">
                   Loading repos for the selected group...
                 </div>
               ) : null}
               {!loadingRepos && selectedGroupKey && groupRepos.length === 0 ? (
-                <div className="rounded-none border border-zinc-200 bg-white px-3 py-4 text-sm text-zinc-500">
+                <div className="rounded-md border border-stone-200 bg-stone-50 px-3 py-4 text-sm text-stone-500">
                   No repos found for this group.
                 </div>
               ) : null}
               {!selectedGroupKey ? (
-                <div className="rounded-none border border-dashed border-zinc-300 bg-white px-3 py-4 text-sm text-zinc-500">
+                <div className="rounded-md border border-dashed border-stone-200 bg-white px-3 py-4 text-sm text-stone-500">
                   Discover groups, then open one to inspect its repo list.
                 </div>
               ) : null}
@@ -367,15 +369,15 @@ export function AssignmentDiscoveryPanel({
                 {groupRepos.map((repo) => (
                   <div
                     key={repo.repoName}
-                    className="rounded-none border border-zinc-200 bg-white px-3 py-3"
+                    className="rounded-md border border-stone-200 bg-white px-3 py-3"
                   >
-                    <div className="truncate text-sm font-medium text-zinc-900">
+                    <div className="truncate text-sm font-medium text-stone-900">
                       {repo.repoName}
                     </div>
-                    <div className="truncate text-xs text-zinc-500">
+                    <div className="truncate text-xs text-stone-500">
                       Suffix: {repo.studentSuffix}
                     </div>
-                    <div className="truncate text-xs text-zinc-400">
+                    <div className="truncate text-xs text-stone-400">
                       {repo.repoUrl}
                     </div>
                   </div>

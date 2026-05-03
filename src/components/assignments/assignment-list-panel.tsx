@@ -44,9 +44,9 @@ export function AssignmentListPanel({
       subtitle={`${assignments.length} queue${assignments.length === 1 ? "" : "s"}`}
       className="h-full min-h-0"
     >
-      <div className="min-h-0 space-y-2 overflow-y-auto bg-[#fbfbfa] p-3">
+      <div className="min-h-0 space-y-2 overflow-y-auto bg-stone-50 p-3">
         {assignments.length === 0 ? (
-          <div className="rounded-none border border-dashed border-zinc-300 bg-white px-4 py-8 text-sm text-zinc-500">
+          <div className="rounded-md border border-dashed border-stone-300 bg-white px-4 py-8 text-sm text-stone-500">
             Create an assignment to start using the dashboard flow.
           </div>
         ) : null}
@@ -57,10 +57,10 @@ export function AssignmentListPanel({
             role="button"
             tabIndex={0}
             className={cn(
-              "rounded-none border p-3 text-left transition-colors outline-none focus-visible:ring-1 focus-visible:ring-zinc-500",
+              "rounded-md border p-3 text-left transition-colors outline-none focus-visible:ring-1 focus-visible:ring-stone-500",
               assignment.id === selectedAssignmentId
-                ? "border-zinc-900 bg-zinc-900 text-white"
-                : "border-zinc-300 bg-white hover:bg-zinc-50",
+                ? "border-violet-500 bg-violet-600 text-white"
+                : "border-stone-200 bg-white hover:bg-stone-50",
             )}
             onClick={() => onSelectAssignment(assignment.id)}
             onKeyDown={(event) => {
@@ -77,7 +77,9 @@ export function AssignmentListPanel({
               {assignment.githubOrg}
             </div>
             <div className="truncate text-xs opacity-70">
-              {assignment.submissionKind === "group" ? "Group assignment" : "Individual assignment"}
+              {assignment.submissionKind === "group"
+                ? "Group assignment"
+                : "Individual assignment"}
             </div>
             <div className="mt-3 flex gap-2">
               <Button
@@ -113,7 +115,7 @@ export function AssignmentListPanel({
               </Button>
             </div>
             {pendingDelete?.assignmentId === assignment.id ? (
-              <div className="mt-3 rounded-none border border-red-300 bg-red-50 px-3 py-3 text-xs text-red-800">
+              <div className="mt-3 rounded-md border border-red-300 bg-red-50 px-3 py-3 text-xs text-red-800">
                 <div className="font-semibold uppercase tracking-[0.12em]">
                   Confirm delete
                 </div>

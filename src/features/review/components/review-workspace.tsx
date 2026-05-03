@@ -10,7 +10,10 @@ import {
   Search,
   Send,
 } from "lucide-react";
-import { submissionDisplayName, submissionMemberSummary } from "../../../lib/format";
+import {
+  submissionDisplayName,
+  submissionMemberSummary,
+} from "../../../lib/format";
 import { cn } from "../../../lib/utils";
 import type {
   DraftComment,
@@ -23,10 +26,19 @@ import { Textarea } from "../../../components/ui/textarea";
 import { PanelShell } from "../../../components/workspace/panel-shell";
 import { StatusBadge } from "../../../components/workspace/status-badge";
 import { useReviewWorkspace } from "../hooks/use-review-workspace";
-import { openExternalLink, openFileInEditor, openRepoInEditor } from "../../../lib/ezta";
+import {
+  openExternalLink,
+  openFileInEditor,
+  openRepoInEditor,
+} from "../../../lib/ezta";
 import { DraftCommentRow } from "./draft-comment-row";
 import { StructuredDiffPane } from "./structured-diff-pane";
-import { basename, dirname, groupChangedFiles, lineToneClass } from "../lib/diff-view";
+import {
+  basename,
+  dirname,
+  groupChangedFiles,
+  lineToneClass,
+} from "../lib/diff-view";
 
 type ReviewWorkspaceProps = {
   selectedRepo: StudentRepo | null;
@@ -42,21 +54,28 @@ export function ReviewWorkspace({
   onBack,
 }: ReviewWorkspaceProps) {
   const [viewMode, setViewMode] = useState<"diff" | "source">("diff");
-  const [sourceSide, setSourceSide] = useState<"base" | "submission">("submission");
+  const [sourceSide, setSourceSide] = useState<"base" | "submission">(
+    "submission",
+  );
   const [editorError, setEditorError] = useState("");
   const [fileQuery, setFileQuery] = useState("");
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
+    new Set(),
+  );
   const review = useReviewWorkspace(selectedRepo, Boolean(selectedRepo));
   const currentComments = review.draftComments.filter(
     (comment) => comment.filePath === review.selectedPath,
   );
-  const baseComments = currentComments.filter((comment) => comment.side === "base");
+  const baseComments = currentComments.filter(
+    (comment) => comment.side === "base",
+  );
   const submissionComments = currentComments.filter(
     (comment) => comment.side === "submission",
   );
   const unpublishedCount = review.draftComments.filter(
     (comment) =>
-      comment.publishStatus === "draft" || comment.publishStatus === "failed_to_map",
+      comment.publishStatus === "draft" ||
+      comment.publishStatus === "failed_to_map",
   ).length;
   const queuedComments = review.draftComments.filter(
     (comment) => comment.publishStatus === "queued_for_review",
@@ -74,7 +93,10 @@ export function ReviewWorkspace({
         .includes(query);
     });
   }, [fileQuery, review.changedFiles]);
-  const groupedFiles = useMemo(() => groupChangedFiles(visibleFiles), [visibleFiles]);
+  const groupedFiles = useMemo(
+    () => groupChangedFiles(visibleFiles),
+    [visibleFiles],
+  );
   const forceExpanded = fileQuery.trim().length > 0;
 
   useEffect(() => {
@@ -105,7 +127,7 @@ export function ReviewWorkspace({
 
   if (!selectedRepo) {
     return (
-      <div className="rounded-none border border-zinc-300 bg-white px-6 py-8 text-sm text-zinc-500">
+      <div className="rounded-md border border-stone-200 bg-white px-6 py-8 text-sm text-stone-500">
         Select a submission to enter review mode.
       </div>
     );
@@ -125,27 +147,28 @@ export function ReviewWorkspace({
         className="h-full min-h-0"
       >
         <div className="grid h-full min-h-0 flex-1 grid-rows-[auto_1fr] bg-white">
-          <div className="border-b border-zinc-200 p-2">
+          <div className="border-b border-stone-200 p-2">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-stone-400" />
               <Input
                 value={fileQuery}
                 onChange={(event) => setFileQuery(event.currentTarget.value)}
                 placeholder="Search changed files"
-                className="h-9 rounded-none pl-8"
+                className="h-9 rounded-md pl-8"
               />
             </div>
           </div>
           <div className="min-h-0 overflow-y-auto bg-white p-2">
             {groupedFiles.map((group) => {
-              const isCollapsed = !forceExpanded && collapsedGroups.has(group.label);
+              const isCollapsed =
+                !forceExpanded && collapsedGroups.has(group.label);
 
               return (
                 <div key={group.label} className="mb-3">
                   <button
                     type="button"
                     onClick={() => toggleGroup(group.label)}
-                    className="mb-1 flex w-full items-center gap-1 border-b border-zinc-200 px-1 pb-1 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500 hover:bg-zinc-50"
+                    className="mb-1 flex w-full items-center gap-1 border-b border-stone-200 px-1 pb-1 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500 hover:bg-stone-50"
                   >
                     {isCollapsed ? (
                       <ChevronRight className="h-3.5 w-3.5 shrink-0" />
@@ -161,17 +184,23 @@ export function ReviewWorkspace({
                           key={file.path}
                           type="button"
                           onClick={() => review.setSelectedPath(file.path)}
-                          className={`w-full rounded-none border px-3 py-2 text-left ${
+                          className={`w-full rounded-md border px-3 py-2 text-left ${
                             review.selectedPath === file.path
-                              ? "border-zinc-900 bg-zinc-900 text-white"
-                              : "border-zinc-200 bg-white hover:border-zinc-400"
+                              ? "border-violet-500 bg-violet-50 text-stone-900"
+                              : "border-stone-200 bg-white hover:border-stone-300"
                           }`}
                         >
-                          <div className="truncate text-sm font-medium">{basename(file.path)}</div>
-                          <div className="truncate text-[11px] opacity-70">{file.path}</div>
+                          <div className="truncate text-sm font-medium">
+                            {basename(file.path)}
+                          </div>
+                          <div className="truncate text-[11px] opacity-70">
+                            {file.path}
+                          </div>
                           <div className="truncate text-[11px] opacity-70">
                             {file.status}
-                            {file.previousPath ? ` from ${file.previousPath}` : ""}
+                            {file.previousPath
+                              ? ` from ${file.previousPath}`
+                              : ""}
                           </div>
                         </button>
                       ))}
@@ -181,7 +210,7 @@ export function ReviewWorkspace({
               );
             })}
             {visibleFiles.length === 0 ? (
-              <div className="border border-dashed border-zinc-300 px-3 py-4 text-sm text-zinc-500">
+              <div className="border border-dashed border-stone-200 px-3 py-4 text-sm text-stone-500">
                 No changed files match the current search.
               </div>
             ) : null}
@@ -250,20 +279,26 @@ export function ReviewWorkspace({
         className="h-full min-h-0"
       >
         <div className="flex h-full min-h-0 flex-col bg-white">
-          <div className="flex items-center gap-2 border-b border-zinc-200 px-4 py-2 text-xs text-zinc-500">
+          <div className="flex items-center gap-2 border-b border-stone-200 px-4 py-2 text-xs text-stone-500">
             <StatusBadge status={selectedRepo.reviewStatus} />
-            <span className="truncate">{submissionMemberSummary(selectedRepo)}</span>
+            <span className="truncate">
+              {submissionMemberSummary(selectedRepo)}
+            </span>
             {review.busy ? <span>Loading review data...</span> : null}
-            {review.error ? <span className="text-red-600">{review.error}</span> : null}
-            {editorError ? <span className="text-red-600">{editorError}</span> : null}
+            {review.error ? (
+              <span className="text-red-600">{review.error}</span>
+            ) : null}
+            {editorError ? (
+              <span className="text-red-600">{editorError}</span>
+            ) : null}
           </div>
-          <div className="border-b border-zinc-200 bg-zinc-50 px-4 py-2">
+          <div className="border-b border-stone-200 bg-stone-50 px-4 py-2">
             <div className="flex items-center justify-between gap-3">
-              <div className="inline-flex border border-zinc-300 bg-white">
+              <div className="inline-flex border border-stone-200 bg-white">
                 <Button
                   size="sm"
                   variant={viewMode === "diff" ? "default" : "ghost"}
-                  className="border-r border-zinc-300"
+                  className="border-r border-stone-200"
                   onClick={() => setViewMode("diff")}
                 >
                   <GitCompareArrows className="h-3.5 w-3.5" />
@@ -277,11 +312,15 @@ export function ReviewWorkspace({
                   Source
                 </Button>
               </div>
-              <div className="inline-flex border border-zinc-300 bg-white">
+              <div className="inline-flex border border-stone-200 bg-white">
                 <Button
                   size="sm"
-                  variant={viewMode === "source" && sourceSide === "base" ? "default" : "ghost"}
-                  className="border-r border-zinc-300"
+                  variant={
+                    viewMode === "source" && sourceSide === "base"
+                      ? "default"
+                      : "ghost"
+                  }
+                  className="border-r border-stone-200"
                   onClick={() => setSourceSide("base")}
                   disabled={viewMode !== "source"}
                 >
@@ -319,10 +358,10 @@ export function ReviewWorkspace({
             <div
               className={cn(
                 "min-h-0 flex-1 overflow-auto",
-                sourceSide === "base" ? "bg-[#fbfbfa]" : "bg-white",
+                sourceSide === "base" ? "bg-stone-50" : "bg-white",
               )}
             >
-              <div className="border-b border-zinc-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              <div className="border-b border-stone-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
                 {sourceSide}
               </div>
               <SelectableCodePane
@@ -332,12 +371,18 @@ export function ReviewWorkspace({
                     ? (review.baseContent?.content ?? "")
                     : (review.submissionContent?.content ?? "")
                 }
-                comments={sourceSide === "base" ? baseComments : submissionComments}
+                comments={
+                  sourceSide === "base" ? baseComments : submissionComments
+                }
                 selectedStartLine={
-                  review.draftSide === sourceSide ? Number(review.draftStartLine) || 1 : null
+                  review.draftSide === sourceSide
+                    ? Number(review.draftStartLine) || 1
+                    : null
                 }
                 selectedEndLine={
-                  review.draftSide === sourceSide ? Number(review.draftEndLine) || 1 : null
+                  review.draftSide === sourceSide
+                    ? Number(review.draftEndLine) || 1
+                    : null
                 }
                 emptyMessage={
                   sourceSide === "base"
@@ -364,7 +409,7 @@ export function ReviewWorkspace({
               href={pendingReview.githubReviewUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center border border-zinc-300 bg-white px-3 py-1.5 text-xs text-zinc-700"
+              className="inline-flex items-center border border-stone-200 bg-white px-3 py-1.5 text-xs text-stone-700"
             >
               <ArrowUpRight className="mr-1 h-3.5 w-3.5" />
               Open pending review
@@ -373,26 +418,32 @@ export function ReviewWorkspace({
         }
         className="h-full min-h-0"
       >
-        <div className="grid h-full min-h-0 grid-rows-[auto_1fr] bg-[#fbfbfa]">
-          <div className="border-b border-zinc-300 px-3 py-3">
+        <div className="grid h-full min-h-0 grid-rows-[auto_1fr_auto] bg-stone-50">
+          <div className="border-b border-stone-200 px-3 py-3">
             <div className="space-y-2">
               <div className="grid min-w-0 gap-2 md:grid-cols-[100px_100px_minmax(0,1fr)]">
                 <Input
                   value={review.draftStartLine}
-                  onChange={(event) => review.setDraftStartLine(event.currentTarget.value)}
+                  onChange={(event) =>
+                    review.setDraftStartLine(event.currentTarget.value)
+                  }
                   placeholder="Start"
-                  className="h-9 min-w-0 rounded-none"
+                  className="h-9 min-w-0 rounded-md"
                 />
                 <Input
                   value={review.draftEndLine}
-                  onChange={(event) => review.setDraftEndLine(event.currentTarget.value)}
+                  onChange={(event) =>
+                    review.setDraftEndLine(event.currentTarget.value)
+                  }
                   placeholder="End"
-                  className="h-9 min-w-0 rounded-none"
+                  className="h-9 min-w-0 rounded-md"
                 />
                 <select
                   value={review.draftSide}
-                  onChange={(event) => review.setDraftSide(event.currentTarget.value)}
-                  className="h-9 min-w-0 rounded-none border border-zinc-300 bg-white px-3 text-sm"
+                  onChange={(event) =>
+                    review.setDraftSide(event.currentTarget.value)
+                  }
+                  className="h-9 min-w-0 rounded-md border border-stone-200 bg-white px-3 text-sm"
                 >
                   <option value="submission">submission</option>
                   <option value="base">base</option>
@@ -400,9 +451,11 @@ export function ReviewWorkspace({
               </div>
               <Textarea
                 value={review.draftBody}
-                onChange={(event) => review.setDraftBody(event.currentTarget.value)}
+                onChange={(event) =>
+                  review.setDraftBody(event.currentTarget.value)
+                }
                 rows={5}
-                className="rounded-none"
+                className="rounded-md"
                 placeholder="Add a local draft comment for this file and line range"
               />
               <Button
@@ -417,7 +470,7 @@ export function ReviewWorkspace({
                 Save draft comment
               </Button>
               {!selectedRepo.prNumber ? (
-                <div className="border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-600">
+                <div className="border border-stone-200 bg-white px-3 py-2 text-xs text-stone-600">
                   Prepare the PR before publishing drafts to GitHub.
                 </div>
               ) : null}
@@ -427,7 +480,9 @@ export function ReviewWorkspace({
                     Pending review queued
                   </div>
                   <div>
-                    {queuedComments.length} comment{queuedComments.length === 1 ? "" : "s"} are attached to one pending GitHub review.
+                    {queuedComments.length} comment
+                    {queuedComments.length === 1 ? "" : "s"} are attached to one
+                    pending GitHub review.
                   </div>
                   <Textarea
                     value={review.reviewSubmissionBody}
@@ -435,7 +490,7 @@ export function ReviewWorkspace({
                       review.setReviewSubmissionBody(event.currentTarget.value)
                     }
                     rows={3}
-                    className="rounded-none"
+                    className="rounded-md"
                     placeholder="Optional overall review summary comment"
                   />
                   <div className="grid gap-2 md:grid-cols-2">
@@ -468,7 +523,11 @@ export function ReviewWorkspace({
                   size="sm"
                   variant="accent"
                   onClick={() => void review.publishComments()}
-                  disabled={!selectedRepo.prNumber || unpublishedCount === 0 || review.busy}
+                  disabled={
+                    !selectedRepo.prNumber ||
+                    unpublishedCount === 0 ||
+                    review.busy
+                  }
                   className="w-full"
                 >
                   <Send className="h-3.5 w-3.5" />
@@ -480,7 +539,7 @@ export function ReviewWorkspace({
 
           <div className="min-h-0 overflow-y-auto p-2">
             {currentComments.length === 0 ? (
-              <div className="rounded-none border border-dashed border-zinc-300 bg-white px-3 py-4 text-sm text-zinc-500">
+              <div className="rounded-md border border-dashed border-stone-200 bg-white px-3 py-4 text-sm text-stone-500">
                 No draft comments for this file yet.
               </div>
             ) : null}
@@ -489,13 +548,35 @@ export function ReviewWorkspace({
                 <DraftCommentRow
                   key={comment.id}
                   onDelete={() => void review.removeComment(comment.id)}
-                  onSave={(input) => void review.updateComment(comment.id, input)}
+                  onSave={(input) =>
+                    void review.updateComment(comment.id, input)
+                  }
                   comment={comment}
                   locked={comment.publishStatus === "queued_for_review"}
                 />
               ))}
             </div>
           </div>
+          {unpublishedCount > 0 ? (
+            <div className="border-t border-stone-200 bg-stone-50 px-4 py-3 flex items-center justify-between gap-3">
+              <span className="text-sm text-stone-600">
+                <span className="font-semibold text-stone-900">
+                  {unpublishedCount}
+                </span>{" "}
+                draft comment{unpublishedCount === 1 ? "" : "s"} ready to
+                publish
+              </span>
+              <Button
+                size="sm"
+                variant="accent"
+                onClick={() => void review.publishComments()}
+                disabled={!selectedRepo.prNumber || review.busy}
+              >
+                <Send className="h-3.5 w-3.5" />
+                Publish to GitHub
+              </Button>
+            </div>
+          ) : null}
         </div>
       </PanelShell>
     </div>
@@ -535,7 +616,7 @@ function SelectableCodePane({
   }, [dragging]);
 
   if (!content) {
-    return <div className="p-4 text-xs text-zinc-500">{emptyMessage}</div>;
+    return <div className="p-4 text-xs text-stone-500">{emptyMessage}</div>;
   }
 
   const lines = content.split("\n");
@@ -544,10 +625,10 @@ function SelectableCodePane({
 
   return (
     <div className="min-h-0 overflow-auto bg-inherit">
-      <div className="border-b border-zinc-200 bg-zinc-50 px-4 py-2 text-[11px] uppercase tracking-[0.12em] text-zinc-500">
+      <div className="border-b border-stone-200 bg-stone-50 px-4 py-2 text-[11px] uppercase tracking-[0.12em] text-stone-500">
         Drag across lines to target {side} comment ranges.
       </div>
-      <div className="font-mono text-xs leading-5 text-zinc-800 select-none">
+      <div className="font-mono text-xs leading-5 text-stone-800 select-none">
         {lines.map((line, index) => {
           const lineNumber = index + 1;
           const isSelected =
@@ -557,7 +638,8 @@ function SelectableCodePane({
             lineNumber <= Math.max(activeStart, activeEnd);
           const matchingComments = comments.filter(
             (comment) =>
-              lineNumber >= comment.startLine && lineNumber <= comment.lineNumber,
+              lineNumber >= comment.startLine &&
+              lineNumber <= comment.lineNumber,
           );
           const toneClass = lineToneClass(matchingComments, isSelected);
 
@@ -565,7 +647,7 @@ function SelectableCodePane({
             <div
               key={`${side}-${lineNumber}`}
               className={cn(
-                "grid grid-cols-[4rem_minmax(0,1fr)] border-b border-zinc-100",
+                "grid grid-cols-[4rem_minmax(0,1fr)] border-b border-stone-100",
                 toneClass,
               )}
               onMouseDown={() => {
@@ -582,7 +664,7 @@ function SelectableCodePane({
                 onSelectionChange(dragStartLine, lineNumber);
               }}
             >
-              <div className="border-r border-zinc-200 px-2 py-0.5 text-right text-[11px] text-zinc-500">
+              <div className="border-r border-stone-200 px-2 py-0.5 text-right text-[11px] text-stone-500">
                 {lineNumber}
               </div>
               <div className="flex min-w-0 items-start justify-between gap-3 px-3 py-0.5">
@@ -590,8 +672,9 @@ function SelectableCodePane({
                   {line || " "}
                 </span>
                 {matchingComments.length > 0 ? (
-                  <span className="shrink-0 border border-zinc-300 bg-white px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-zinc-600">
-                    {matchingComments.length} comment{matchingComments.length > 1 ? "s" : ""}
+                  <span className="shrink-0 border border-stone-200 bg-white px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-stone-600">
+                    {matchingComments.length} comment
+                    {matchingComments.length > 1 ? "s" : ""}
                   </span>
                 ) : null}
               </div>

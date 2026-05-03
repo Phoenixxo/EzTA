@@ -10,7 +10,10 @@ type ErrorBoundaryState = {
   errorMessage: string;
 };
 
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   public state: ErrorBoundaryState = {
     hasError: false,
     errorMessage: "",
@@ -38,8 +41,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#d7d6d1] p-4 text-zinc-950">
-          <div className="mx-auto max-w-3xl rounded-none border border-red-300 bg-red-50 px-6 py-5">
+        <div className="min-h-screen bg-stone-100 p-4 text-stone-900">
+          <div className="mx-auto max-w-3xl rounded-lg border border-red-300 bg-red-50 px-6 py-5">
             <div className="text-sm font-semibold uppercase tracking-[0.14em] text-red-700">
               Interface error
             </div>
@@ -47,17 +50,17 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               The UI hit a runtime error instead of silently blanking.
             </h1>
             <p className="mt-3 text-sm leading-6 text-red-800">
-              Refresh the app to recover. If this keeps happening, send the exact field and key
-              sequence that triggered it.
+              Refresh the app to recover. If this keeps happening, send the
+              exact field and key sequence that triggered it.
             </p>
             <button
               type="button"
               onClick={this.handleResetUiState}
-              className="mt-4 rounded-none border border-red-400 bg-white px-4 py-2 text-sm text-red-900 hover:bg-red-100"
+              className="mt-4 rounded-md border border-red-400 bg-white px-4 py-2 text-sm text-red-900 hover:bg-red-100"
             >
               Reset saved UI state and reload
             </button>
-            <pre className="mt-4 overflow-x-auto rounded-none bg-white/80 p-3 text-xs text-red-900">
+            <pre className="mt-4 overflow-x-auto rounded-md bg-white/80 p-3 text-xs text-red-900">
               {this.state.errorMessage || "Unknown runtime error"}
             </pre>
           </div>

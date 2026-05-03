@@ -6,30 +6,32 @@ export function SettingsWindowPage() {
   const settings = useAppSettings();
 
   return (
-    <div className="min-h-screen bg-[#d7d6d1] p-4 text-zinc-950">
-      <SettingsPage
-        editorAppInput={settings.editorAppInput}
-        onEditorAppInputChange={settings.setEditorAppInput}
-        editorApplicationPathInput={settings.editorApplicationPathInput}
-        onEditorApplicationPathInputChange={settings.setEditorApplicationPathInput}
-        onChooseEditorApplication={() => void settings.chooseEditorApplication()}
-        updaterOverview={settings.appUpdaterOverview}
-        appUpdateResult={settings.appUpdateResult}
-        appUpdateMessage={settings.appUpdateMessage}
-        upgradeRecoveryMessage={settings.upgradeRecoveryMessage}
-        githubConnectionStatus={settings.githubConnectionStatus}
-        githubAuthMessage={settings.githubAuthMessage}
-        dataSafetyMessage={settings.dataSafetyMessage}
-        onCheckAppUpdate={() => void settings.checkAppUpdate()}
-        onInstallAppUpdate={() => void settings.runAppUpdateInstall()}
-        onResetSavedUiState={settings.resetSavedUiState}
-        onStartGithubAuth={() => void settings.startGithubAuth()}
-        onRefreshGithubConnectionStatus={() => void settings.refreshGithubConnectionStatus()}
-        onExportAppData={() => void settings.exportAppData()}
-        onImportAppData={(file) => void settings.importAppData(file)}
-        onClose={() => void getCurrentWindow().close()}
-        busy={settings.settingsBusy}
-      />
-    </div>
+    <SettingsPage
+      editorAppInput={settings.editorAppInput}
+      onEditorAppInputChange={settings.setEditorAppInput}
+      editorApplicationPathInput={settings.editorApplicationPathInput}
+      onEditorApplicationPathInputChange={
+        settings.setEditorApplicationPathInput
+      }
+      onChooseEditorApplication={() => void settings.chooseEditorApplication()}
+      updaterOverview={settings.appUpdaterOverview}
+      appUpdateResult={settings.appUpdateResult}
+      appUpdateMessage={settings.appUpdateMessage}
+      upgradeRecoveryMessage={settings.upgradeRecoveryMessage}
+      githubConnectionStatus={settings.githubConnectionStatus}
+      githubAuthMessage={settings.githubAuthMessage}
+      dataSafetyMessage={settings.dataSafetyMessage}
+      onCheckAppUpdate={() => void settings.checkAppUpdate()}
+      onInstallAppUpdate={() => void settings.runAppUpdateInstall()}
+      onResetSavedUiState={settings.resetSavedUiState}
+      onStartGithubAuth={() => void settings.startGithubAuth()}
+      onRefreshGithubConnectionStatus={() =>
+        void settings.refreshGithubConnectionStatus()
+      }
+      onExportAppData={() => void settings.exportAppData()}
+      onImportAppData={(file) => void settings.importAppData(file)}
+      onClose={() => void getCurrentWindow().close()}
+      busy={settings.settingsBusy}
+    />
   );
 }

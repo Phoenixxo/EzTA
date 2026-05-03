@@ -1,6 +1,5 @@
 import type { Assignment, StudentRepo } from "../types/ezta";
 import { submissionDisplayName, submissionMemberSummary } from "../lib/format";
-import { Breadcrumbs } from "../components/navigation/breadcrumbs";
 import { Button } from "../components/ui/button";
 import { StatusBadge } from "../components/workspace/status-badge";
 
@@ -15,27 +14,24 @@ type ReviewSummaryPageProps = {
 export function ReviewSummaryPage({
   assignment,
   repos,
-  onOpenAssignments,
   onOpenDashboard,
   onOpenStudent,
 }: ReviewSummaryPageProps) {
-  const unresolvedRepos = repos.filter((repo) => repo.reviewStatus !== "reviewed");
+  const unresolvedRepos = repos.filter(
+    (repo) => repo.reviewStatus !== "reviewed",
+  );
 
   return (
     <div className="space-y-4">
-      <Breadcrumbs
-        items={[
-          { label: "Assignments", onClick: onOpenAssignments },
-          { label: assignment?.name ?? "Assignment", onClick: onOpenDashboard },
-          { label: "Review Summary" },
-        ]}
-      />
-
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="rounded-none border border-zinc-300 bg-white">
-          <div className="border-b border-zinc-300 px-4 py-3">
-            <div className="text-sm font-semibold text-zinc-900">Review queue</div>
-            <div className="text-xs text-zinc-500">{repos.length} submissions in this assignment</div>
+        <div className="rounded-lg border border-stone-200 bg-white">
+          <div className="border-b border-stone-200 px-4 py-3">
+            <div className="text-sm font-semibold text-stone-900">
+              {assignment?.name ?? "Review Summary"}
+            </div>
+            <div className="text-xs text-stone-500">
+              {repos.length} submissions in this assignment
+            </div>
           </div>
           <div className="max-h-[calc(100vh-14rem)] overflow-y-auto">
             {repos.map((repo) => (
@@ -43,18 +39,20 @@ export function ReviewSummaryPage({
                 key={repo.id}
                 type="button"
                 onClick={() => onOpenStudent(repo.id)}
-                className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-zinc-200 px-4 py-3 text-left hover:bg-zinc-50"
+                className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-stone-100 px-4 py-3 text-left transition-colors hover:bg-stone-50"
               >
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-zinc-900">
+                  <div className="truncate text-sm font-medium text-stone-900">
                     {submissionDisplayName(repo, assignment?.submissionKind)}
                   </div>
-                  <div className="truncate text-xs text-zinc-500">
+                  <div className="truncate text-xs text-stone-400">
                     {repo.repoOwner}/{repo.repoName}
                   </div>
-                  <div className="truncate text-xs text-zinc-500">
-                    {submissionMemberSummary(repo)}
-                  </div>
+                  {submissionMemberSummary(repo) ? (
+                    <div className="truncate text-xs text-stone-400">
+                      {submissionMemberSummary(repo)}
+                    </div>
+                  ) : null}
                 </div>
                 <StatusBadge status={repo.reviewStatus} />
               </button>
@@ -62,28 +60,34 @@ export function ReviewSummaryPage({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <SummaryMetric label="Needs review" value={unresolvedRepos.length} />
-          <SummaryMetric label="Prepared PRs" value={repos.filter((repo) => repo.prUrl).length} />
+          <SummaryMetric
+            label="Prepared PRs"
+            value={repos.filter((repo) => repo.prUrl).length}
+          />
           <SummaryMetric
             label="Missing targets"
-            value={repos.filter((repo) => !repo.baseSha || !repo.submissionSha).length}
+            value={
+              repos.filter((repo) => !repo.baseSha || !repo.submissionSha)
+                .length
+            }
           />
-          <div className="rounded-none border border-zinc-300 bg-white p-4">
-            <div className="text-sm font-semibold text-zinc-900">Next recommended submission</div>
-            <div className="mt-2 text-sm text-zinc-600">
+          <div className="rounded-lg border border-stone-200 bg-white p-4">
+            <div className="text-sm font-semibold text-stone-900">Next up</div>
+            <div className="mt-2 text-sm text-stone-600">
               {unresolvedRepos[0]
-                ? `${submissionDisplayName(
+                ? submissionDisplayName(
                     unresolvedRepos[0],
                     assignment?.submissionKind,
-                  )}`
+                  )
                 : "All submissions are reviewed."}
             </div>
             {unresolvedRepos[0] ? (
               <Button
                 type="button"
                 size="sm"
-                variant="secondary"
+                variant="default"
                 className="mt-3"
                 onClick={() => onOpenStudent(unresolvedRepos[0].id)}
               >
@@ -91,6 +95,15 @@ export function ReviewSummaryPage({
               </Button>
             ) : null}
           </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onOpenDashboard}
+            className="w-full"
+          >
+            Back to dashboard
+          </Button>
         </div>
       </div>
     </div>
@@ -99,9 +112,13 @@ export function ReviewSummaryPage({
 
 function SummaryMetric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-none border border-zinc-300 bg-white px-4 py-4">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">{label}</div>
-      <div className="mt-2 text-2xl font-semibold text-zinc-900">{value}</div>
+    <div className="rounded-lg border border-stone-200 bg-white px-4 py-4">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-stone-500">
+        {label}
+      </div>
+      <div className="mt-1.5 text-2xl font-semibold text-stone-900">
+        {value}
+      </div>
     </div>
   );
 }

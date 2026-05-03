@@ -36,7 +36,10 @@ export function AssignmentSettingsPanel({
   busy,
   className,
 }: AssignmentSettingsPanelProps) {
-  const templateError = validateRepoTemplate(repoTemplateInput, submissionKindInput);
+  const templateError = validateRepoTemplate(
+    repoTemplateInput,
+    submissionKindInput,
+  );
   const templatePreview = previewRepoTemplate(repoTemplateInput, {
     assignmentName: assignment?.name ?? "unit10",
   });
@@ -51,9 +54,11 @@ export function AssignmentSettingsPanel({
         <select
           value={submissionKindInput}
           onChange={(event) =>
-            onSubmissionKindInputChange(event.currentTarget.value as "individual" | "group")
+            onSubmissionKindInputChange(
+              event.currentTarget.value as "individual" | "group",
+            )
           }
-          className="h-10 w-full rounded-none border border-zinc-300 bg-white px-3 text-sm"
+          className="h-10 w-full rounded-md border border-stone-200 bg-white px-3 text-sm"
           disabled={!assignment}
         >
           <option value="individual">Individual assignment</option>
@@ -61,17 +66,20 @@ export function AssignmentSettingsPanel({
         </select>
         <Input
           value={repoTemplateInput}
-          onChange={(event) => onRepoTemplateInputChange(event.currentTarget.value)}
-          className="h-10 rounded-none"
+          onChange={(event) =>
+            onRepoTemplateInputChange(event.currentTarget.value)
+          }
+          className="h-10"
           placeholder="unit10-{github_username}"
           disabled={!assignment}
         />
         <div className="space-y-2">
-          <div className="border border-zinc-300 bg-zinc-50 px-3 py-2 text-xs text-zinc-600">
+          <div className="border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-600">
             {getRepoTemplateHelpText(submissionKindInput)}
           </div>
-          <div className="border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-700">
-            Preview: <span className="font-mono text-zinc-900">{templatePreview}</span>
+          <div className="border border-stone-200 bg-white px-3 py-2 text-xs text-stone-700">
+            Preview:{" "}
+            <span className="font-mono text-stone-900">{templatePreview}</span>
           </div>
           {templateError ? (
             <div className="border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-700">
@@ -83,7 +91,7 @@ export function AssignmentSettingsPanel({
           type="datetime-local"
           value={deadlineInput}
           onChange={(event) => onDeadlineInputChange(event.currentTarget.value)}
-          className="h-10 rounded-none"
+          className="h-10"
           disabled={!assignment}
         />
         <div className="flex flex-wrap gap-2">

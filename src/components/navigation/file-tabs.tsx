@@ -16,7 +16,7 @@ export function FileTabs<T extends string>({
   className,
 }: FileTabsProps<T>) {
   return (
-    <div className={cn("-mb-px border-b border-zinc-300", className)}>
+    <div className={cn("-mb-px border-b border-stone-200", className)}>
       <div className="flex flex-wrap items-end gap-1">
         {tabs.map((tab) => {
           const isActive = tab === activeTab;
@@ -28,8 +28,8 @@ export function FileTabs<T extends string>({
               className={cn(
                 "relative border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition-colors",
                 isActive
-                  ? "border-zinc-300 border-b-[#f7f7f5] bg-[#f7f7f5] text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]"
-                  : "border-transparent bg-zinc-200/60 text-zinc-600 hover:border-zinc-300 hover:bg-zinc-100 hover:text-zinc-900",
+                  ? "border-stone-200 border-b-white bg-white text-stone-900"
+                  : "border-transparent bg-stone-100/60 text-stone-500 hover:border-stone-200 hover:bg-stone-100 hover:text-stone-800",
               )}
             >
               {labels?.[tab] ?? tab}

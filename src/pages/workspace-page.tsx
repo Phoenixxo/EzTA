@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { FolderGit2, Settings } from "lucide-react";
 import { nextRepoId, previousRepoId } from "../lib/format";
 import { useBackgroundJobsPoll } from "../hooks/use-background-jobs";
 import { useEztaWorkspace } from "../hooks/use-ezta-workspace";
 import { AssignmentsPage } from "./assignments-page";
 import { AssignmentDashboardPage } from "./assignment-dashboard-page";
-import { StudentReviewPage } from "./student-review-page";
 import { ReviewSummaryPage } from "./review-summary-page";
 import { ReviewWorkspace } from "../features/review/components/review-workspace";
+import { InspectorPane } from "../components/workspace/inspector-pane";
+import { QueueSidebarPane } from "../components/workspace/queue-sidebar-pane";
+import { AppSidebar } from "../components/navigation/app-sidebar";
 import { readStoredRoute, writeStoredRoute } from "../lib/ezta-storage";
 import { openSettingsWindow } from "../lib/settings-window";
-import { JobTray } from "../components/workspace/job-tray";
 
 type Route =
   | { page: "assignments" }
@@ -89,14 +89,19 @@ export function WorkspacePage() {
   }, [route]);
 
   useEffect(() => {
-    if (currentAssignmentId && workspace.selectedAssignmentId !== currentAssignmentId) {
+    if (
+      currentAssignmentId &&
+      workspace.selectedAssignmentId !== currentAssignmentId
+    ) {
       workspace.setSelectedAssignmentId(currentAssignmentId);
     }
   }, [currentAssignmentId, workspace]);
 
   useEffect(() => {
     const currentRepoId =
-      route.page === "student" || route.page === "review" ? route.studentRepoId : null;
+      route.page === "student" || route.page === "review"
+        ? route.studentRepoId
+        : null;
     if (currentRepoId && workspace.selectedRepoId !== currentRepoId) {
       workspace.setSelectedRepoId(currentRepoId);
     }
@@ -106,7 +111,9 @@ export function WorkspacePage() {
     if (
       currentAssignmentId &&
       workspace.assignments.length > 0 &&
-      !workspace.assignments.some((assignment) => assignment.id === currentAssignmentId)
+      !workspace.assignments.some(
+        (assignment) => assignment.id === currentAssignmentId,
+      )
     ) {
       setRoute({ page: "assignments" });
     }
@@ -123,12 +130,17 @@ export function WorkspacePage() {
       return;
     }
 
-    const matchingRepo = workspace.repos.find((repo) => repo.id === route.studentRepoId);
+    const matchingRepo = workspace.repos.find(
+      (repo) => repo.id === route.studentRepoId,
+    );
     if (matchingRepo) {
       return;
     }
 
-    if (workspace.selectedRepoId && workspace.repos.some((repo) => repo.id === workspace.selectedRepoId)) {
+    if (
+      workspace.selectedRepoId &&
+      workspace.repos.some((repo) => repo.id === workspace.selectedRepoId)
+    ) {
       setRoute({
         page: route.page,
         assignmentId: route.assignmentId,
@@ -180,7 +192,10 @@ export function WorkspacePage() {
 
       if (lowerKey === "j") {
         event.preventDefault();
-        const repoId = nextRepoId(workspace.filteredRepos, workspace.selectedRepoId);
+        const repoId = nextRepoId(
+          workspace.filteredRepos,
+          workspace.selectedRepoId,
+        );
         if (repoId !== null) {
           workspace.setSelectedRepoId(repoId);
           setRoute({
@@ -188,7 +203,7 @@ export function WorkspacePage() {
             assignmentId:
               route.page === "review" || route.page === "student"
                 ? route.assignmentId
-                : currentAssignmentId ?? workspace.selectedAssignmentId ?? 0,
+                : (currentAssignmentId ?? workspace.selectedAssignmentId ?? 0),
             studentRepoId: repoId,
           });
         }
@@ -197,7 +212,10 @@ export function WorkspacePage() {
 
       if (lowerKey === "k") {
         event.preventDefault();
-        const repoId = previousRepoId(workspace.filteredRepos, workspace.selectedRepoId);
+        const repoId = previousRepoId(
+          workspace.filteredRepos,
+          workspace.selectedRepoId,
+        );
         if (repoId !== null) {
           workspace.setSelectedRepoId(repoId);
           setRoute({
@@ -205,7 +223,7 @@ export function WorkspacePage() {
             assignmentId:
               route.page === "review" || route.page === "student"
                 ? route.assignmentId
-                : currentAssignmentId ?? workspace.selectedAssignmentId ?? 0,
+                : (currentAssignmentId ?? workspace.selectedAssignmentId ?? 0),
             studentRepoId: repoId,
           });
         }
@@ -267,7 +285,6 @@ export function WorkspacePage() {
         return (
           <AssignmentDashboardPage
             assignment={workspace.selectedAssignment}
-            assignments={workspace.assignments}
             tab={route.tab}
             onTabChange={(tab) => setRoute({ ...route, tab })}
             repos={workspace.repos}
@@ -281,7 +298,6 @@ export function WorkspacePage() {
                 studentRepoId: repoId,
               })
             }
-            onOpenAssignments={() => setRoute({ page: "assignments" })}
             onOpenSummary={() =>
               setRoute({ page: "summary", assignmentId: route.assignmentId })
             }
@@ -312,80 +328,131 @@ export function WorkspacePage() {
         );
       case "student":
         return (
-          <StudentReviewPage
-            assignmentName={workspace.selectedAssignment?.name ?? null}
-            assignmentSubmissionKind={
-              workspace.selectedAssignment?.submissionKind ?? null
-            }
-            selectedRepo={workspace.selectedRepo}
-            filteredRepoCount={workspace.filteredRepos.length}
-            selectedPosition={selectedPosition >= 0 ? selectedPosition + 1 : 0}
-            commitOptions={workspace.commitOptions}
-            pickerTarget={workspace.pickerTarget}
-            onPickerTargetChange={workspace.setPickerTarget}
-            baseInput={workspace.baseInput}
-            onBaseInputChange={workspace.setBaseInput}
-            submissionInput={workspace.submissionInput}
-            onSubmissionInputChange={workspace.setSubmissionInput}
-            notesInput={workspace.notesInput}
-            onNotesInputChange={workspace.setNotesInput}
-            statusInput={workspace.statusInput}
-            onStatusInputChange={workspace.setStatusInput}
-            onLoadCommitOptions={workspace.handleLoadCommitOptions}
-            onValidateTarget={workspace.handleValidateTarget}
-            onSaveTarget={workspace.handleSaveTarget}
-            onSaveRepoMeta={workspace.handleSaveRepoMeta}
-            onPrepareReview={workspace.handlePrepareReview}
-            onOpenRepoInEditor={workspace.handleOpenRepoInEditor}
-            onOpenReviewWorkspace={() =>
-              setRoute({
-                page: "review",
-                assignmentId: route.assignmentId,
-                studentRepoId: route.studentRepoId,
-              })
-            }
-            onApplyPickedRevision={workspace.applyPickedRevision}
-            onOpenAssignments={() => setRoute({ page: "assignments" })}
-            onOpenDashboard={() =>
-              setRoute({
-                page: "assignment",
-                assignmentId: route.assignmentId,
-                tab: "queue",
-              })
-            }
-            onOpenPrevious={() => {
-              const repoId = previousRepoId(
-                workspace.filteredRepos,
-                workspace.selectedRepoId,
-              );
-              if (repoId !== null) {
+          // Persistent split: queue sidebar on the left, inspector on the right
+          <div className="flex h-full min-h-0 gap-3 overflow-hidden">
+            <QueueSidebarPane
+              assignment={workspace.selectedAssignment}
+              repos={workspace.repos}
+              filteredRepos={workspace.filteredRepos}
+              selectedRepoId={workspace.selectedRepoId}
+              onSelectRepo={(repoId: number | null) => {
                 workspace.setSelectedRepoId(repoId);
-                setRoute({
-                  page: "student",
-                  assignmentId: route.assignmentId,
-                  studentRepoId: repoId,
-                });
-              }
-            }}
-            onOpenNext={() => {
-              const repoId = nextRepoId(
-                workspace.filteredRepos,
-                workspace.selectedRepoId,
-              );
-              if (repoId !== null) {
-                workspace.setSelectedRepoId(repoId);
-                setRoute({
-                  page: "student",
-                  assignmentId: route.assignmentId,
-                  studentRepoId: repoId,
-                });
-              }
-            }}
-            hasPrevious={hasPrevious}
-            hasNext={hasNext}
-            selectedAssignmentDeadline={workspace.selectedAssignment?.deadlineAt ?? null}
-            busy={workspace.busy}
-          />
+                if (repoId !== null) {
+                  setRoute({
+                    page: "student",
+                    assignmentId: route.assignmentId,
+                    studentRepoId: repoId,
+                  });
+                }
+              }}
+              statusFilter={workspace.statusFilter}
+              onStatusFilterChange={workspace.setStatusFilter}
+              repoQuery={workspace.repoQuery}
+              onRepoQueryChange={workspace.setRepoQuery}
+              hasPrevious={hasPrevious}
+              hasNext={hasNext}
+              onOpenPrevious={() => {
+                const repoId = previousRepoId(
+                  workspace.filteredRepos,
+                  workspace.selectedRepoId,
+                );
+                if (repoId !== null) {
+                  workspace.setSelectedRepoId(repoId);
+                  setRoute({
+                    page: "student",
+                    assignmentId: route.assignmentId,
+                    studentRepoId: repoId,
+                  });
+                }
+              }}
+              onOpenNext={() => {
+                const repoId = nextRepoId(
+                  workspace.filteredRepos,
+                  workspace.selectedRepoId,
+                );
+                if (repoId !== null) {
+                  workspace.setSelectedRepoId(repoId);
+                  setRoute({
+                    page: "student",
+                    assignmentId: route.assignmentId,
+                    studentRepoId: repoId,
+                  });
+                }
+              }}
+            />
+            <div className="flex min-w-0 flex-1 overflow-hidden">
+              <InspectorPane
+                selectedRepo={workspace.selectedRepo}
+                selectedAssignmentSubmissionKind={
+                  workspace.selectedAssignment?.submissionKind ?? null
+                }
+                selectedAssignmentDeadline={
+                  workspace.selectedAssignment?.deadlineAt ?? null
+                }
+                filteredRepoCount={workspace.filteredRepos.length}
+                selectedPosition={
+                  selectedPosition >= 0 ? selectedPosition + 1 : 0
+                }
+                commitOptions={workspace.commitOptions}
+                pickerTarget={workspace.pickerTarget}
+                onPickerTargetChange={workspace.setPickerTarget}
+                baseInput={workspace.baseInput}
+                onBaseInputChange={workspace.setBaseInput}
+                submissionInput={workspace.submissionInput}
+                onSubmissionInputChange={workspace.setSubmissionInput}
+                notesInput={workspace.notesInput}
+                onNotesInputChange={workspace.setNotesInput}
+                statusInput={workspace.statusInput}
+                onStatusInputChange={workspace.setStatusInput}
+                onLoadCommitOptions={workspace.handleLoadCommitOptions}
+                onValidateTarget={workspace.handleValidateTarget}
+                onSaveTarget={workspace.handleSaveTarget}
+                onSaveRepoMeta={workspace.handleSaveRepoMeta}
+                onPrepareReview={workspace.handlePrepareReview}
+                onOpenRepoInEditor={workspace.handleOpenRepoInEditor}
+                onOpenReviewWorkspace={() =>
+                  setRoute({
+                    page: "review",
+                    assignmentId: route.assignmentId,
+                    studentRepoId: route.studentRepoId,
+                  })
+                }
+                onApplyPickedRevision={workspace.applyPickedRevision}
+                onMarkReviewed={() => void workspace.handleMarkReviewed()}
+                hasPrevious={hasPrevious}
+                hasNext={hasNext}
+                onOpenPrevious={() => {
+                  const repoId = previousRepoId(
+                    workspace.filteredRepos,
+                    workspace.selectedRepoId,
+                  );
+                  if (repoId !== null) {
+                    workspace.setSelectedRepoId(repoId);
+                    setRoute({
+                      page: "student",
+                      assignmentId: route.assignmentId,
+                      studentRepoId: repoId,
+                    });
+                  }
+                }}
+                onOpenNext={() => {
+                  const repoId = nextRepoId(
+                    workspace.filteredRepos,
+                    workspace.selectedRepoId,
+                  );
+                  if (repoId !== null) {
+                    workspace.setSelectedRepoId(repoId);
+                    setRoute({
+                      page: "student",
+                      assignmentId: route.assignmentId,
+                      studentRepoId: repoId,
+                    });
+                  }
+                }}
+                busy={workspace.busy}
+              />
+            </div>
+          </div>
         );
       case "review":
         return (
@@ -430,51 +497,36 @@ export function WorkspacePage() {
   }, [route, workspace, selectedPosition, hasPrevious, hasNext]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#d7d6d1] p-4 text-zinc-950">
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="mb-3 flex items-center rounded-none border border-zinc-400 bg-linear-to-b from-zinc-100 to-zinc-200 px-4 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-        <div className="flex items-center gap-3">
-          <div className="rounded-none border border-zinc-400 bg-white p-1.5">
-            <FolderGit2 className="h-4 w-4 text-zinc-700" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold tracking-[0.12em] uppercase text-zinc-700">
-              EzTA Workbench
-            </div>
-            <div className="text-xs text-zinc-500">
-              {workspace.selectedAssignment?.name ?? "Assignment navigation"}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {workspace.error ? (
-        <div className="mb-3 rounded-none border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700">
-          {workspace.error}
-        </div>
-      ) : null}
-
-      <div className="min-h-0 flex-1 overflow-hidden">{pageContent}</div>
-      </div>
-
-      <button
-        type="button"
-        onClick={() => {
+    <div className="flex h-screen overflow-hidden bg-stone-100">
+      {/* Persistent sidebar */}
+      <AppSidebar
+        assignments={workspace.assignments}
+        currentAssignmentId={currentAssignmentId}
+        isOnAssignmentsHome={route.page === "assignments"}
+        jobs={jobs}
+        onDismissJob={(id) => void dismissJob(id)}
+        onOpenAssignment={(id) => {
+          workspace.setSelectedAssignmentId(id);
+          setRoute({ page: "assignment", assignmentId: id, tab: "queue" });
+        }}
+        onOpenAssignmentsHome={() => setRoute({ page: "assignments" })}
+        onOpenSettings={() => {
           void openSettingsWindow().catch((err) => {
             window.alert(`Unable to open settings window.\n\n${String(err)}`);
           });
         }}
-        className="fixed right-4 bottom-4 rounded-none border border-zinc-400 bg-white p-3 text-zinc-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-zinc-50"
-        aria-label="Open settings"
-      >
-        <Settings className="h-4 w-4" />
-      </button>
-      <JobTray
-        jobs={jobs}
-        onDismiss={(jobId) => {
-          void dismissJob(jobId);
-        }}
       />
+
+      {/* Main content */}
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        {workspace.error ? (
+          <div className="border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+            {workspace.error}
+          </div>
+        ) : null}
+
+        <div className="min-h-0 flex-1 overflow-hidden p-4">{pageContent}</div>
+      </div>
     </div>
   );
 }

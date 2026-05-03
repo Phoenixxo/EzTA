@@ -26,6 +26,7 @@ type StudentReviewPageProps = {
   onValidateTarget: () => void;
   onSaveTarget: () => void;
   onSaveRepoMeta: () => void;
+  onMarkReviewed: () => void;
   onPrepareReview: () => void;
   onOpenRepoInEditor: () => void;
   onOpenReviewWorkspace: () => void;
@@ -61,6 +62,7 @@ export function StudentReviewPage({
   onValidateTarget,
   onSaveTarget,
   onSaveRepoMeta,
+  onMarkReviewed,
   onPrepareReview,
   onOpenRepoInEditor,
   onOpenReviewWorkspace,
@@ -89,20 +91,38 @@ export function StudentReviewPage({
       />
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button type="button" size="sm" variant="outline" onClick={onOpenDashboard}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={onOpenDashboard}
+        >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to queue
         </Button>
-        <Button type="button" size="sm" variant="outline" onClick={onOpenPrevious} disabled={!hasPrevious}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={onOpenPrevious}
+          disabled={!hasPrevious}
+        >
           <ChevronLeft className="h-3.5 w-3.5" />
           Previous submission
         </Button>
-        <Button type="button" size="sm" variant="outline" onClick={onOpenNext} disabled={!hasNext}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={onOpenNext}
+          disabled={!hasNext}
+        >
           Next submission
           <ChevronRight className="h-3.5 w-3.5" />
         </Button>
-        <div className="border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-600">
-          Shortcuts: `alt+j` next, `alt+k` previous, `alt+s` save target, `alt+p` prepare PR, `alt+o` open PR, `alt+r` mark reviewed
+        <div className="border border-stone-300 bg-white px-3 py-2 text-xs text-stone-600">
+          Shortcuts: `alt+j` next, `alt+k` previous, `alt+s` save target,
+          `alt+p` prepare PR, `alt+o` open PR, `alt+r` mark reviewed
         </div>
       </div>
 
@@ -128,10 +148,15 @@ export function StudentReviewPage({
           onValidateTarget={onValidateTarget}
           onSaveTarget={onSaveTarget}
           onSaveRepoMeta={onSaveRepoMeta}
+          onMarkReviewed={onMarkReviewed}
           onPrepareReview={onPrepareReview}
           onOpenRepoInEditor={onOpenRepoInEditor}
           onOpenReviewWorkspace={onOpenReviewWorkspace}
           onApplyPickedRevision={onApplyPickedRevision}
+          hasPrevious={hasPrevious}
+          hasNext={hasNext}
+          onOpenPrevious={onOpenPrevious}
+          onOpenNext={onOpenNext}
           busy={busy}
         />
       </div>

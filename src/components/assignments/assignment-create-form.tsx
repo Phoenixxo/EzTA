@@ -23,7 +23,10 @@ export function AssignmentCreateForm({
   className,
 }: AssignmentCreateFormProps) {
   const [form, setForm] = useState<AssignmentForm>(emptyAssignmentForm);
-  const templateError = validateRepoTemplate(form.repoTemplate, form.submissionKind);
+  const templateError = validateRepoTemplate(
+    form.repoTemplate,
+    form.submissionKind,
+  );
   const templatePreview = previewRepoTemplate(form.repoTemplate, {
     assignmentName: form.name,
   });
@@ -45,7 +48,10 @@ export function AssignmentCreateForm({
       subtitle="Create a new queue and review workspace"
       className={className ?? "min-h-0"}
     >
-      <form className="grid gap-3 bg-white p-4 md:grid-cols-2" onSubmit={handleSubmit}>
+      <form
+        className="grid gap-3 bg-white p-4 md:grid-cols-2"
+        onSubmit={handleSubmit}
+      >
         <Input
           value={form.name}
           onChange={(event) => {
@@ -54,7 +60,7 @@ export function AssignmentCreateForm({
           }}
           placeholder="Assignment name"
           required
-          className="h-10 rounded-none"
+          className="h-10"
         />
         <Input
           value={form.githubOrg}
@@ -64,7 +70,7 @@ export function AssignmentCreateForm({
           }}
           placeholder="GitHub org"
           required
-          className="h-10 rounded-none"
+          className="h-10"
         />
         <Input
           value={form.repoPrefix}
@@ -73,7 +79,7 @@ export function AssignmentCreateForm({
             setForm((current) => ({ ...current, repoPrefix: value }));
           }}
           placeholder="Optional repo prefix"
-          className="h-10 rounded-none"
+          className="h-10"
         />
         <select
           value={form.submissionKind}
@@ -81,7 +87,7 @@ export function AssignmentCreateForm({
             const value = event.currentTarget.value as "individual" | "group";
             setForm((current) => ({ ...current, submissionKind: value }));
           }}
-          className="h-10 rounded-none border border-zinc-300 bg-white px-3 text-sm"
+          className="h-10 rounded-md border border-stone-200 bg-white px-3 text-sm"
         >
           <option value="individual">Individual assignment</option>
           <option value="group">Group assignment</option>
@@ -93,14 +99,15 @@ export function AssignmentCreateForm({
             setForm((current) => ({ ...current, repoTemplate: value }));
           }}
           placeholder="unit10-{github_username}"
-          className="h-10 rounded-none"
+          className="h-10"
         />
         <div className="space-y-2 md:col-span-2">
-          <div className="border border-zinc-300 bg-zinc-50 px-3 py-2 text-xs text-zinc-600">
+          <div className="border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-600">
             {getRepoTemplateHelpText(form.submissionKind)}
           </div>
-          <div className="border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-700">
-            Preview: <span className="font-mono text-zinc-900">{templatePreview}</span>
+          <div className="border border-stone-200 bg-white px-3 py-2 text-xs text-stone-700">
+            Preview:{" "}
+            <span className="font-mono text-stone-900">{templatePreview}</span>
           </div>
           {templateError ? (
             <div className="border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-700">
@@ -115,9 +122,13 @@ export function AssignmentCreateForm({
             const value = event.currentTarget.value;
             setForm((current) => ({ ...current, deadlineAt: value }));
           }}
-          className="h-10 rounded-none"
+          className="h-10"
         />
-        <Button type="submit" disabled={busy || Boolean(templateError)} className="h-10">
+        <Button
+          type="submit"
+          disabled={busy || Boolean(templateError)}
+          className="h-10"
+        >
           <Plus className="h-4 w-4" />
           Create queue
         </Button>

@@ -82,14 +82,8 @@ export function RosterImportPanel({
       }
     >
       <div className="space-y-3 bg-white p-4">
-        <div className="border border-zinc-300 bg-zinc-50 px-3 py-3 text-xs text-zinc-700">
-          <div className="font-semibold uppercase tracking-[0.12em] text-zinc-900">
-            UPLOAD ROSTER FILE HERE
-          </div>
-          <div className="font-bold mt-1 leading-5">
-            Supported File Types: CSV
-            <br />
-          </div>
+        <div className="border border-stone-200 bg-stone-50 px-3 py-3 text-xs text-stone-600">
+          Upload a CSV roster file from GitHub Classroom.
         </div>
         <input
           ref={rosterFileInputRef}
@@ -109,18 +103,18 @@ export function RosterImportPanel({
           Choose roster file
         </Button>
         {rosterFileName ? (
-          <div className="rounded-none border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600">
+          <div className="rounded-md border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-600">
             Loaded file: {rosterFileName}
           </div>
         ) : null}
         {rosterFileError ? (
-          <div className="rounded-none border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-700">
+          <div className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-700">
             {rosterFileError}
           </div>
         ) : null}
-        <div className="border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-700">
+        <div className="border border-stone-200 bg-white px-3 py-2 text-xs text-stone-700">
           Repo preview from current template:
-          <span className="ml-2 font-mono text-zinc-900">
+          <span className="ml-2 font-mono text-stone-900">
             {previewRepoName}
           </span>
         </div>
@@ -128,7 +122,7 @@ export function RosterImportPanel({
           value={rosterInput}
           onChange={(event) => onRosterInputChange(event.currentTarget.value)}
           rows={12}
-          className="rounded-none text-xs"
+          className="text-xs"
           placeholder="GitHub Classroom CSV: identifier, github_username, github_id, name, group_name"
           disabled={!assignment}
         />
