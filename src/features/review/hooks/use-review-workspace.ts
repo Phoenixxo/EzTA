@@ -21,12 +21,18 @@ import type {
   StudentRepo,
 } from "../../../types/ezta";
 
-export function useReviewWorkspace(selectedRepo: StudentRepo | null, active: boolean) {
+export function useReviewWorkspace(
+  selectedRepo: StudentRepo | null,
+  active: boolean,
+) {
   const [changedFiles, setChangedFiles] = useState<ChangedFile[]>([]);
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [diffResult, setDiffResult] = useState<FileDiffResult | null>(null);
-  const [baseContent, setBaseContent] = useState<FileContentResult | null>(null);
-  const [submissionContent, setSubmissionContent] = useState<FileContentResult | null>(null);
+  const [baseContent, setBaseContent] = useState<FileContentResult | null>(
+    null,
+  );
+  const [submissionContent, setSubmissionContent] =
+    useState<FileContentResult | null>(null);
   const [fileCache, setFileCache] = useState<
     Record<
       string,
@@ -48,24 +54,33 @@ export function useReviewWorkspace(selectedRepo: StudentRepo | null, active: boo
   const [discardJobId, setDiscardJobId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!selectedRepo || !active) {
-      setChangedFiles([]);
-      setSelectedPath(null);
-      setDiffResult(null);
-      setBaseContent(null);
-      setSubmissionContent(null);
-      setFileCache({});
-      setDraftComments([]);
-      setDraftBody("");
-      setDraftStartLine("1");
-      setDraftEndLine("1");
-      setDraftSide("submission");
-      setReviewSubmissionBody("");
-      setError("");
+    // Always wipe stale state first, regardless of whether we're clearing or
+    // switching to a different student. This prevents fileCache hits from one
+    // student's files being served as another student's diff content.
+    setChangedFiles([]);
+    setSelectedPath(null);
+    setDiffResult(null);
+    setBaseContent(null);
+    setSubmissionContent(null);
+    setFileCache({});
+    setDraftComments([]);
+    setDraftBody("");
+    setDraftStartLine("1");
+    setDraftEndLine("1");
+    setDraftSide("submission");
+    setReviewSubmissionBody("");
+    setError("");
+
+    const repoId = selectedRepo?.id ?? null;
+    if (!repoId || !active) {
       return;
     }
-    void loadWorkspace(selectedRepo.id);
-  }, [selectedRepo, active]);
+    void loadWorkspace(repoId);
+    // Depend on the repo *id*, not the whole object — the object reference
+    // changes on every parent render (e.g. after marking reviewed) which
+    // would otherwise cause unnecessary workspace reloads.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRepo?.id, active]);
 
   useEffect(() => {
     if (!selectedRepo || !active || !selectedPath) {
@@ -73,7 +88,10 @@ export function useReviewWorkspace(selectedRepo: StudentRepo | null, active: boo
     }
     const cached = fileCache[selectedPath];
     if (cached) {
-      setDiffResult({ path: cached.reviewFileData.path, diff: cached.reviewFileData.diff });
+      setDiffResult({
+        path: cached.reviewFileData.path,
+        diff: cached.reviewFileData.diff,
+      });
       setBaseContent(
         cached.reviewFileData.baseContent === null
           ? null
@@ -168,7 +186,9 @@ export function useReviewWorkspace(selectedRepo: StudentRepo | null, active: boo
       ]);
       setChangedFiles(files);
       setDraftComments(comments);
-      setSelectedPath((current) => current ?? files[0]?.path ?? null);
+      // Always select the first file of the newly loaded student.
+      // Never preserve a path from a previous student.
+      setSelectedPath(files[0]?.path ?? null);
     } catch (err) {
       setError(String(err));
     } finally {
@@ -244,7 +264,12 @@ export function useReviewWorkspace(selectedRepo: StudentRepo | null, active: boo
 
   async function updateComment(
     commentId: number,
-    input: { body: string; startLine: number; lineNumber: number; side: string },
+    input: {
+      body: string;
+      startLine: number;
+      lineNumber: number;
+      side: string;
+    },
   ) {
     setBusy(true);
     setError("");
@@ -257,7 +282,9 @@ export function useReviewWorkspace(selectedRepo: StudentRepo | null, active: boo
         side: input.side,
       });
       setDraftComments((current) =>
-        current.map((comment) => (comment.id === commentId ? updated : comment)),
+        current.map((comment) =>
+          comment.id === commentId ? updated : comment,
+        ),
       );
     } catch (err) {
       setError(String(err));
@@ -271,7 +298,9 @@ export function useReviewWorkspace(selectedRepo: StudentRepo | null, active: boo
     setError("");
     try {
       await deleteDraftComment(commentId);
-      setDraftComments((current) => current.filter((comment) => comment.id !== commentId));
+      setDraftComments((current) =>
+        current.filter((comment) => comment.id !== commentId),
+      );
     } catch (err) {
       setError(String(err));
     } finally {
