@@ -19,6 +19,20 @@ export default defineConfig(async () => ({
     minify: "esbuild",
     sourcemap: false,
     cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom"],
+          markdown: ["react-markdown", "remark-gfm"],
+          tauri: [
+            "@tauri-apps/api",
+            "@tauri-apps/plugin-dialog",
+            "@tauri-apps/plugin-opener",
+          ],
+          icons: ["lucide-react"],
+        },
+      },
+    },
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

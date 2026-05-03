@@ -1,4 +1,10 @@
-import { CheckCircle2, FolderGit2, LoaderCircle, Settings, XCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  FolderGit2,
+  LoaderCircle,
+  Settings,
+  XCircle,
+} from "lucide-react";
 import type { Assignment, BackgroundJob } from "../../types/ezta";
 import { cn } from "../../lib/utils";
 

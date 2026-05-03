@@ -504,7 +504,10 @@ export function useEztaWorkspace() {
   }
 
   async function handleOpenRepoInEditor(studentRepoIdOverride?: number) {
-    const repoId = studentRepoIdOverride ?? selectedRepo?.id;
+    const repoId =
+      typeof studentRepoIdOverride === "number"
+        ? studentRepoIdOverride
+        : selectedRepo?.id;
     if (!repoId) return;
     setBusy(true);
     setError("");

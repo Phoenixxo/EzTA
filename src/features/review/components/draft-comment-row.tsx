@@ -36,7 +36,7 @@ export function DraftCommentRow({
   }, [locked]);
 
   return (
-    <div className="rounded-md border border-stone-200 bg-white p-3">
+    <div className="w-full min-w-0 rounded-md border border-stone-200 bg-white p-3">
       <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-stone-500">
         <span>
           {comment.side} lines {comment.startLine}-{comment.lineNumber}
@@ -94,7 +94,7 @@ export function DraftCommentRow({
           review before editing it.
         </div>
       ) : null}
-      <div className="mb-2 grid min-w-0 gap-2 md:grid-cols-[100px_100px_minmax(0,1fr)]">
+      <div className="mb-2 grid min-w-0 gap-2 grid-cols-[80px_80px_minmax(0,1fr)]">
         <Input
           value={startLine}
           onChange={(event) => setStartLine(event.currentTarget.value)}

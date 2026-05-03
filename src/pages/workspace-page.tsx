@@ -5,9 +5,7 @@ import { useEztaWorkspace } from "../hooks/use-ezta-workspace";
 import { AssignmentsPage } from "./assignments-page";
 import { AssignmentDashboardPage } from "./assignment-dashboard-page";
 import { ReviewSummaryPage } from "./review-summary-page";
-import { ReviewWorkspace } from "../features/review/components/review-workspace";
-import { InspectorPane } from "../components/workspace/inspector-pane";
-import { QueueSidebarPane } from "../components/workspace/queue-sidebar-pane";
+import { CombinedReviewWorkspace } from "../features/review/components/combined-review-workspace";
 import { AppSidebar } from "../components/navigation/app-sidebar";
 import { readStoredRoute, writeStoredRoute } from "../lib/ezta-storage";
 import { openSettingsWindow } from "../lib/settings-window";
@@ -259,6 +257,88 @@ export function WorkspacePage() {
   }, [currentAssignmentId, route, workspace]);
 
   const pageContent = useMemo(() => {
+    function openRepoInReview(repoId: number | null) {
+      workspace.setSelectedRepoId(repoId);
+      if (repoId !== null && currentAssignmentId) {
+        setRoute({
+          page: "student",
+          assignmentId: currentAssignmentId,
+          studentRepoId: repoId,
+        });
+      }
+    }
+
+    function openPreviousInReview() {
+      const repoId = previousRepoId(
+        workspace.filteredRepos,
+        workspace.selectedRepoId,
+      );
+      if (repoId !== null) {
+        openRepoInReview(repoId);
+      }
+    }
+
+    function openNextInReview() {
+      const repoId = nextRepoId(
+        workspace.filteredRepos,
+        workspace.selectedRepoId,
+      );
+      if (repoId !== null) {
+        openRepoInReview(repoId);
+      }
+    }
+
+    function renderCombinedReview() {
+      return (
+        <CombinedReviewWorkspace
+          assignment={workspace.selectedAssignment}
+          selectedRepo={workspace.selectedRepo}
+          selectedRepoId={workspace.selectedRepoId}
+          assignmentSubmissionKind={
+            workspace.selectedAssignment?.submissionKind ?? null
+          }
+          repos={workspace.repos}
+          filteredRepos={workspace.filteredRepos}
+          filteredRepoCount={workspace.filteredRepos.length}
+          selectedPosition={selectedPosition >= 0 ? selectedPosition + 1 : 0}
+          statusFilter={workspace.statusFilter}
+          onStatusFilterChange={workspace.setStatusFilter}
+          repoQuery={workspace.repoQuery}
+          onRepoQueryChange={workspace.setRepoQuery}
+          onSelectRepo={openRepoInReview}
+          hasPrevious={hasPrevious}
+          hasNext={hasNext}
+          onOpenPrevious={openPreviousInReview}
+          onOpenNext={openNextInReview}
+          commitOptions={workspace.commitOptions}
+          selectedAssignmentDeadline={
+            workspace.selectedAssignment?.deadlineAt ?? null
+          }
+          pickerTarget={workspace.pickerTarget}
+          onPickerTargetChange={workspace.setPickerTarget}
+          baseInput={workspace.baseInput}
+          onBaseInputChange={workspace.setBaseInput}
+          submissionInput={workspace.submissionInput}
+          onSubmissionInputChange={workspace.setSubmissionInput}
+          onLoadCommitOptions={workspace.handleLoadCommitOptions}
+          onValidateTarget={workspace.handleValidateTarget}
+          onSaveTarget={workspace.handleSaveTarget}
+          onApplyPickedRevision={workspace.applyPickedRevision}
+          notesInput={workspace.notesInput}
+          onNotesInputChange={workspace.setNotesInput}
+          statusInput={workspace.statusInput}
+          onStatusInputChange={workspace.setStatusInput}
+          onSaveRepoMeta={workspace.handleSaveRepoMeta}
+          onMarkReviewed={() => void workspace.handleMarkReviewed()}
+          onPrepareReview={workspace.handlePrepareReview}
+          onOpenRepoInEditor={workspace.handleOpenRepoInEditor}
+          onOpenPr={workspace.handleOpenPr}
+          editorCommand={workspace.resolvedEditorApplication}
+          busy={workspace.busy}
+        />
+      );
+    }
+
     switch (route.page) {
       case "assignments":
         return (
@@ -327,150 +407,9 @@ export function WorkspacePage() {
           />
         );
       case "student":
-        return (
-          // Persistent split: queue sidebar on the left, inspector on the right
-          <div className="flex h-full min-h-0 gap-3 overflow-hidden">
-            <QueueSidebarPane
-              assignment={workspace.selectedAssignment}
-              repos={workspace.repos}
-              filteredRepos={workspace.filteredRepos}
-              selectedRepoId={workspace.selectedRepoId}
-              onSelectRepo={(repoId: number | null) => {
-                workspace.setSelectedRepoId(repoId);
-                if (repoId !== null) {
-                  setRoute({
-                    page: "student",
-                    assignmentId: route.assignmentId,
-                    studentRepoId: repoId,
-                  });
-                }
-              }}
-              statusFilter={workspace.statusFilter}
-              onStatusFilterChange={workspace.setStatusFilter}
-              repoQuery={workspace.repoQuery}
-              onRepoQueryChange={workspace.setRepoQuery}
-              hasPrevious={hasPrevious}
-              hasNext={hasNext}
-              onOpenPrevious={() => {
-                const repoId = previousRepoId(
-                  workspace.filteredRepos,
-                  workspace.selectedRepoId,
-                );
-                if (repoId !== null) {
-                  workspace.setSelectedRepoId(repoId);
-                  setRoute({
-                    page: "student",
-                    assignmentId: route.assignmentId,
-                    studentRepoId: repoId,
-                  });
-                }
-              }}
-              onOpenNext={() => {
-                const repoId = nextRepoId(
-                  workspace.filteredRepos,
-                  workspace.selectedRepoId,
-                );
-                if (repoId !== null) {
-                  workspace.setSelectedRepoId(repoId);
-                  setRoute({
-                    page: "student",
-                    assignmentId: route.assignmentId,
-                    studentRepoId: repoId,
-                  });
-                }
-              }}
-            />
-            <div className="flex min-w-0 flex-1 overflow-hidden">
-              <InspectorPane
-                selectedRepo={workspace.selectedRepo}
-                selectedAssignmentSubmissionKind={
-                  workspace.selectedAssignment?.submissionKind ?? null
-                }
-                selectedAssignmentDeadline={
-                  workspace.selectedAssignment?.deadlineAt ?? null
-                }
-                filteredRepoCount={workspace.filteredRepos.length}
-                selectedPosition={
-                  selectedPosition >= 0 ? selectedPosition + 1 : 0
-                }
-                commitOptions={workspace.commitOptions}
-                pickerTarget={workspace.pickerTarget}
-                onPickerTargetChange={workspace.setPickerTarget}
-                baseInput={workspace.baseInput}
-                onBaseInputChange={workspace.setBaseInput}
-                submissionInput={workspace.submissionInput}
-                onSubmissionInputChange={workspace.setSubmissionInput}
-                notesInput={workspace.notesInput}
-                onNotesInputChange={workspace.setNotesInput}
-                statusInput={workspace.statusInput}
-                onStatusInputChange={workspace.setStatusInput}
-                onLoadCommitOptions={workspace.handleLoadCommitOptions}
-                onValidateTarget={workspace.handleValidateTarget}
-                onSaveTarget={workspace.handleSaveTarget}
-                onSaveRepoMeta={workspace.handleSaveRepoMeta}
-                onPrepareReview={workspace.handlePrepareReview}
-                onOpenRepoInEditor={workspace.handleOpenRepoInEditor}
-                onOpenReviewWorkspace={() =>
-                  setRoute({
-                    page: "review",
-                    assignmentId: route.assignmentId,
-                    studentRepoId: route.studentRepoId,
-                  })
-                }
-                onApplyPickedRevision={workspace.applyPickedRevision}
-                onMarkReviewed={() => void workspace.handleMarkReviewed()}
-                hasPrevious={hasPrevious}
-                hasNext={hasNext}
-                onOpenPrevious={() => {
-                  const repoId = previousRepoId(
-                    workspace.filteredRepos,
-                    workspace.selectedRepoId,
-                  );
-                  if (repoId !== null) {
-                    workspace.setSelectedRepoId(repoId);
-                    setRoute({
-                      page: "student",
-                      assignmentId: route.assignmentId,
-                      studentRepoId: repoId,
-                    });
-                  }
-                }}
-                onOpenNext={() => {
-                  const repoId = nextRepoId(
-                    workspace.filteredRepos,
-                    workspace.selectedRepoId,
-                  );
-                  if (repoId !== null) {
-                    workspace.setSelectedRepoId(repoId);
-                    setRoute({
-                      page: "student",
-                      assignmentId: route.assignmentId,
-                      studentRepoId: repoId,
-                    });
-                  }
-                }}
-                busy={workspace.busy}
-              />
-            </div>
-          </div>
-        );
+        return renderCombinedReview();
       case "review":
-        return (
-          <ReviewWorkspace
-            selectedRepo={workspace.selectedRepo}
-            assignmentSubmissionKind={
-              workspace.selectedAssignment?.submissionKind ?? null
-            }
-            editorCommand={workspace.resolvedEditorApplication}
-            onBack={() =>
-              setRoute({
-                page: "student",
-                assignmentId: route.assignmentId,
-                studentRepoId: route.studentRepoId,
-              })
-            }
-          />
-        );
+        return renderCombinedReview();
       case "summary":
         return (
           <ReviewSummaryPage
@@ -494,7 +433,14 @@ export function WorkspacePage() {
           />
         );
     }
-  }, [route, workspace, selectedPosition, hasPrevious, hasNext]);
+  }, [
+    route,
+    workspace,
+    currentAssignmentId,
+    selectedPosition,
+    hasPrevious,
+    hasNext,
+  ]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-stone-100">
